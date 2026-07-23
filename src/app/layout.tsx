@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NahdiCare | Himalaya Purifying Neem Face Wash",
+  title: "AdOrbit | Automate Your Social Ads on Meta, TikTok & Snapchat",
   description:
-    "Shop Himalaya Purifying Neem Face Wash at NahdiCare - Saudi Arabia's trusted online pharmacy for personal care, skincare, and health products. SFDA approved.",
+    "AdOrbit is the B2B platform that automates campaign launches, budget optimization, and creative testing across Meta, TikTok, and Snapchat — from one dashboard.",
   keywords:
-    "pharmacy, Saudi Arabia, personal care, face wash, Himalaya, neem, skincare, SFDA",
+    "social media ads automation, Meta ads, TikTok ads, Snapchat ads, B2B ad platform, budget optimization, creative testing",
+  openGraph: {
+    title: "AdOrbit | Social Ads Automation for Meta, TikTok & Snapchat",
+    description:
+      "Launch, optimize, and scale paid social campaigns across three platforms from one dashboard.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -15,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+    <html lang="en" className="h-full antialiased" data-scroll-behavior="smooth">
+      <body className="min-h-full bg-background text-foreground">
         {children}
       </body>
     </html>
