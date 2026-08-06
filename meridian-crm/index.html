@@ -1,0 +1,1260 @@
+<title>Meridian — Revenue Command Center</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --ink-3: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --ring: rgba(11,11,11,0.10);
+    --accent: #2a78d6;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(42,120,214,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+    --good: #0ca30c; --good-text: #006300;
+    --warn: #fab219; --serious: #ec835a; --crit: #d03b3b;
+    --seq-250:#86b6ef; --seq-350:#5598e7; --seq-450:#2a78d6; --seq-550:#1c5cab; --seq-600:#184f95;
+    --shadow: 0 1px 2px rgba(11,11,11,.05), 0 8px 24px rgba(11,11,11,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #898781;
+      --grid: #2c2c2a; --baseline: #383835; --ring: rgba(255,255,255,0.10);
+      --accent: #3987e5; --accent-soft: rgba(57,135,229,0.16);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+      --good-text: #0ca30c;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #898781;
+    --grid: #2c2c2a; --baseline: #383835; --ring: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-soft: rgba(57,135,229,0.16);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    --good-text: #0ca30c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --ring: rgba(11,11,11,0.10);
+    --accent: #2a78d6; --accent-soft: rgba(42,120,214,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+    --good-text: #006300;
+    --shadow: 0 1px 2px rgba(11,11,11,.05), 0 8px 24px rgba(11,11,11,.06);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page); color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, tr[tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+  }
+  select, input[type="search"] {
+    font: inherit; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--grid); border-radius: 8px; padding: 7px 10px;
+  }
+
+  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* ============ sidebar ============ */
+  .side {
+    background: var(--surface); border-right: 1px solid var(--grid);
+    padding: 20px 12px; position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; gap: 4px; overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 18px; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 9px; flex: none;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
+  }
+  .brand-name { font-weight: 700; font-size: 15px; letter-spacing: .01em; }
+  .brand-sub { font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .nav-label { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); padding: 12px 10px 6px; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 8px 10px; border-radius: 8px; color: var(--ink-2); text-align: left;
+  }
+  .nav-btn svg { flex: none; opacity: .75; }
+  .nav-btn:hover { background: var(--accent-soft); color: var(--ink); }
+  .nav-btn.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .nav-btn.on svg { opacity: 1; }
+  .side-foot { margin-top: auto; padding: 14px 10px 4px; border-top: 1px solid var(--grid); font-size: 11.5px; color: var(--ink-3); }
+  .side-foot strong { color: var(--ink-2); }
+
+  /* ============ main ============ */
+  .main { min-width: 0; }
+  .topbar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 14px 28px; border-bottom: 1px solid var(--grid);
+    background: var(--surface); position: sticky; top: 0; z-index: 20;
+  }
+  .topbar h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  .topbar .crumb { color: var(--ink-3); font-size: 12.5px; }
+  .topbar .spacer { flex: 1; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--grid); color: var(--ink-2); background: var(--surface);
+  }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft);
+    color: var(--accent); font-size: 12px; font-weight: 700; display: grid; place-items: center;
+  }
+
+  .content { padding: 24px 28px 60px; max-width: 1240px; }
+  .view { display: none; }
+  .view.on { display: block; }
+  .view-head { margin: 2px 0 18px; }
+  .view-head h2 { font-size: 20px; margin: 0 0 4px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+  .view-head p { margin: 0; color: var(--ink-2); max-width: 68ch; }
+
+  .grid { display: grid; gap: 14px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .span-2 { grid-column: span 2; }
+  @media (max-width: 1000px) { .cols-4 { grid-template-columns: 1fr 1fr; } .cols-3 { grid-template-columns: 1fr; } }
+  @media (max-width: 760px)  { .cols-2, .cols-4 { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--grid);
+    border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow);
+    min-width: 0;
+  }
+  .card h3 { font-size: 13px; margin: 0 0 2px; font-weight: 650; }
+  .card .sub { font-size: 12px; color: var(--ink-3); margin: 0 0 12px; }
+
+  /* stat tiles */
+  .stat .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .stat .num { font-size: 27px; font-weight: 700; letter-spacing: -.02em; margin: 4px 0 2px; }
+  .stat .delta { font-size: 12px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .up { color: var(--good-text); font-weight: 600; }
+  .down { color: var(--crit); font-weight: 600; }
+
+  .progress { height: 6px; border-radius: 3px; background: var(--grid); overflow: hidden; margin-top: 10px; }
+  .progress > span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .progress > span.g { background: var(--good); }
+  .progress > span.w { background: var(--warn); }
+
+  /* status pills */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .pill svg { flex: none; }
+  .pill.good { color: var(--good-text); background: rgba(12,163,12,.12); }
+  .pill.warn { color: #8a6100; background: rgba(250,178,25,.16); }
+  :root[data-theme="dark"] .pill.warn { color: var(--warn); }
+  @media (prefers-color-scheme: dark) { :root:where(:not([data-theme="light"])) .pill.warn { color: var(--warn); } }
+  .pill.crit { color: var(--crit); background: rgba(208,59,59,.12); }
+  .pill.info { color: var(--accent); background: var(--accent-soft); }
+
+  /* tables */
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--accent-soft); }
+  tbody tr.clickable { cursor: pointer; }
+  .rank { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  /* charts */
+  .chart { width: 100%; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin: 2px 0 10px; }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  .axis-note { font-size: 11px; color: var(--ink-3); margin-top: 6px; }
+
+  #tip {
+    position: fixed; z-index: 99; pointer-events: none; display: none;
+    background: var(--ink); color: var(--page);
+    font-size: 12px; line-height: 1.45; padding: 7px 10px; border-radius: 8px;
+    box-shadow: var(--shadow); max-width: 260px;
+  }
+  #tip b { font-variant-numeric: tabular-nums; }
+
+  /* filters row */
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .filters input[type="search"] { min-width: 200px; flex: 1; max-width: 320px; }
+
+  /* kanban strip */
+  .stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 900px) { .stages { grid-template-columns: repeat(2, 1fr); } }
+  .stage-card { border: 1px solid var(--grid); border-radius: 12px; padding: 12px 14px; background: var(--surface); border-top: 3px solid var(--baseline); }
+  .stage-card .n { font-size: 21px; font-weight: 700; }
+  .stage-card .t { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+  .stage-card .v { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+  /* drawer */
+  .drawer-scrim { position: fixed; inset: 0; background: rgba(11,11,11,.35); z-index: 40; display: none; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(400px, 92vw); z-index: 41;
+    background: var(--surface); border-left: 1px solid var(--grid);
+    padding: 22px; overflow-y: auto; transform: translateX(102%); transition: transform .22s ease;
+  }
+  .drawer.open { transform: none; }
+  .drawer-scrim.open { display: block; }
+  @media (prefers-reduced-motion: reduce) { .drawer { transition: none; } }
+  .drawer h3 { margin: 0; font-size: 17px; }
+  .drawer .kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 13px; margin-top: 16px; }
+  .drawer .kv dt { color: var(--ink-3); } .drawer .kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .drawer .close { position: absolute; top: 14px; right: 14px; color: var(--ink-3); font-size: 20px; padding: 4px 10px; }
+
+  /* callouts */
+  .callout {
+    border: 1px solid var(--grid); border-left: 3px solid var(--crit);
+    border-radius: 12px; padding: 14px 16px; background: var(--surface);
+  }
+  .callout.good { border-left-color: var(--good); }
+  .callout.info { border-left-color: var(--accent); }
+  .callout .t { font-weight: 650; font-size: 13px; margin-bottom: 3px; display: flex; gap: 8px; align-items: center; }
+  .callout p { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+  .note { font-size: 11.5px; color: var(--ink-3); }
+
+  /* funnel */
+  .funnel { display: flex; flex-direction: column; gap: 8px; }
+  .f-row { display: grid; grid-template-columns: 108px 1fr 120px; gap: 12px; align-items: center; }
+  .f-row .name { font-size: 12.5px; color: var(--ink-2); }
+  .f-bar-track { height: 26px; display: flex; }
+  .f-bar { height: 100%; border-radius: 4px; min-width: 4px; }
+  .f-row .val { font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .f-conv { font-size: 11px; color: var(--ink-3); padding-left: 120px; }
+
+  /* scenario toggle */
+  .seg { display: inline-flex; border: 1px solid var(--grid); border-radius: 10px; overflow: hidden; }
+  .seg button { padding: 6px 14px; font-size: 12.5px; color: var(--ink-2); }
+  .seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+  .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  /* responsive shell */
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .side { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--grid); padding: 10px 12px; }
+    .brand { padding: 0 8px 0 0; } .nav-label, .side-foot { display: none; }
+    .nav-btn { width: auto; padding: 6px 10px; } .nav-btn span { font-size: 12.5px; }
+    .content { padding: 18px 14px 50px; }
+    .topbar { padding: 12px 14px; }
+  }
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <div>
+        <div class="brand-name">Meridian</div>
+        <div class="brand-sub">Revenue OS</div>
+      </div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <strong>Acme SaaS</strong> · demo workspace<br>Sample data · Jan 2024 – Aug 2025
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1 id="page-title">Command Center</h1>
+      <span class="crumb" id="page-crumb"></span>
+      <span class="spacer"></span>
+      <span class="chip"><span class="dot"></span>Data synced · Aug 2025</span>
+      <span class="avatar" title="Demo user">AS</span>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div id="tip"></div>
+<div class="drawer-scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Lead detail"></aside>
+
+<script>
+const DB = {"leads":[{"date":"1/4/2024","source":"Organic","id":"L00186","company":"OmegaAnalytics","industry":"Financial Services","size":"SMB","rep":"Michael Rodriguez","stage":"SQL","value":15408,"closeDate":null,"cycle":24,"tier":"Starter","contract":"Annual"},{"date":"1/11/2024","source":"Paid Ads","id":"L00071","company":"Digital Corp","industry":"Healthcare","size":"SMB","rep":"David Park","stage":"SQL","value":15986,"closeDate":null,"cycle":41,"tier":"Professional","contract":"Multi-year"},{"date":"1/13/2024","source":"Paid Ads","id":"L00068","company":"NextInnovations","industry":"Retail","size":"Enterprise","rep":"Jessica Williams","stage":"Opportunity","value":185596,"closeDate":null,"cycle":96,"tier":"Enterprise","contract":"Annual"},{"date":"1/14/2024","source":"Referral","id":"L00122","company":"Apex Analytics","industry":"Manufacturing","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Lost","value":62295,"closeDate":null,"cycle":82,"tier":"Professional","contract":"Monthly"},{"date":"1/15/2024","source":"Direct","id":"L00083","company":"Smart Plus","industry":"Financial Services","size":"Enterprise","rep":"Emily Thompson","stage":"SQL","value":185153,"closeDate":null,"cycle":96,"tier":"Enterprise","contract":"Monthly"},{"date":"1/17/2024","source":"Paid Ads","id":"L00011","company":"ApexSystems","industry":"Real Estate","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Lost","value":65899,"closeDate":null,"cycle":62,"tier":"Professional","contract":"Annual"},{"date":"1/17/2024","source":"Content Marketing","id":"L00173","company":"GlobalInnovations","industry":"Manufacturing","size":"Mid-Market","rep":"Jessica Williams","stage":"SQL","value":57889,"closeDate":null,"cycle":59,"tier":"Professional","contract":"Multi-year"},{"date":"1/22/2024","source":"Referral","id":"L00184","company":"NovaSolutions","industry":"Technology","size":"Enterprise","rep":"Robert Kim","stage":"Opportunity","value":155018,"closeDate":null,"cycle":169,"tier":"Enterprise","contract":"Annual"},{"date":"1/30/2024","source":"Organic","id":"L00151","company":"GlobalSolutions","industry":"Technology","size":"Mid-Market","rep":"David Park","stage":"Opportunity","value":60630,"closeDate":null,"cycle":72,"tier":"Professional","contract":"Multi-year"},{"date":"2/1/2024","source":"Direct","id":"L00085","company":"Apex Innovations","industry":"Education","size":"Mid-Market","rep":"David Park","stage":"Opportunity","value":48620,"closeDate":null,"cycle":79,"tier":"Professional","contract":"Annual"},{"date":"2/6/2024","source":"Events","id":"L00189","company":"Alpha Corp","industry":"Technology","size":"Enterprise","rep":"James Martinez","stage":"MQL","value":154246,"closeDate":null,"cycle":101,"tier":"Enterprise","contract":"Monthly"},{"date":"2/14/2024","source":"Organic","id":"L00064","company":"BetaTechnologies","industry":"Retail","size":"SMB","rep":"James Martinez","stage":"Closed-Lost","value":16265,"closeDate":null,"cycle":25,"tier":"Starter","contract":"Monthly"},{"date":"2/21/2024","source":"Referral","id":"L00035","company":"Tech Group","industry":"Financial Services","size":"Enterprise","rep":"Sarah Chen","stage":"Closed-Lost","value":121715,"closeDate":null,"cycle":156,"tier":"Enterprise","contract":"Annual"},{"date":"2/22/2024","source":"Direct","id":"L00245","company":"ApexCorp","industry":"Education","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":15909,"closeDate":"3/24/2024","cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"2/25/2024","source":"Referral","id":"L00021","company":"QuantumInnovations","industry":"Education","size":"Mid-Market","rep":"Sarah Chen","stage":"Closed-Won","value":43608,"closeDate":"5/16/2024","cycle":81,"tier":"Professional","contract":"Multi-year"},{"date":"2/25/2024","source":"Paid Ads","id":"L00216","company":"Beta Labs","industry":"Education","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":24407,"closeDate":null,"cycle":43,"tier":"Professional","contract":"Multi-year"},{"date":"3/1/2024","source":"Organic","id":"L00236","company":"Apex Enterprises","industry":"Professional Services","size":"Enterprise","rep":"James Martinez","stage":"Opportunity","value":144237,"closeDate":null,"cycle":107,"tier":"Enterprise","contract":"Monthly"},{"date":"3/6/2024","source":"Paid Ads","id":"L00059","company":"ApexCorp","industry":"Education","size":"SMB","rep":"Michael Rodriguez","stage":"SQL","value":13961,"closeDate":null,"cycle":41,"tier":"Professional","contract":"Monthly"},{"date":"3/12/2024","source":"Paid Ads","id":"L00082","company":"Vertex Innovations","industry":"Professional Services","size":"SMB","rep":"Sarah Chen","stage":"Opportunity","value":15244,"closeDate":null,"cycle":38,"tier":"Starter","contract":"Monthly"},{"date":"3/15/2024","source":"Content Marketing","id":"L00104","company":"Summit Technologies","industry":"Education","size":"SMB","rep":"James Martinez","stage":"Opportunity","value":15690,"closeDate":null,"cycle":24,"tier":"Professional","contract":"Annual"},{"date":"3/16/2024","source":"Content Marketing","id":"L00159","company":"Tech Analytics","industry":"Real Estate","size":"Enterprise","rep":"Emily Thompson","stage":"Closed-Won","value":109823,"closeDate":"7/20/2024","cycle":126,"tier":"Enterprise","contract":"Annual"},{"date":"3/18/2024","source":"Organic","id":"L00028","company":"QuantumTechnologies","industry":"Manufacturing","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Won","value":64925,"closeDate":"6/14/2024","cycle":88,"tier":"Professional","contract":"Monthly"},{"date":"3/19/2024","source":"Paid Ads","id":"L00183","company":"VertexPlus","industry":"Professional Services","size":"Enterprise","rep":"David Park","stage":"MQL","value":196825,"closeDate":null,"cycle":170,"tier":"Enterprise","contract":"Monthly"},{"date":"3/25/2024","source":"Organic","id":"L00106","company":"EliteCorp","industry":"Professional Services","size":"Mid-Market","rep":"James Martinez","stage":"SQL","value":60606,"closeDate":null,"cycle":77,"tier":"Professional","contract":"Monthly"},{"date":"3/28/2024","source":"Organic","id":"L00244","company":"Beta Ventures","industry":"Education","size":"Enterprise","rep":"James Martinez","stage":"Closed-Won","value":105886,"closeDate":"7/23/2024","cycle":117,"tier":"Enterprise","contract":"Annual"},{"date":"3/29/2024","source":"Referral","id":"L00204","company":"AlphaLabs","industry":"Technology","size":"SMB","rep":"Michael Rodriguez","stage":"Opportunity","value":12219,"closeDate":null,"cycle":22,"tier":"Starter","contract":"Annual"},{"date":"4/1/2024","source":"Content Marketing","id":"L00052","company":"ApexInnovations","industry":"Technology","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Won","value":31500,"closeDate":"6/14/2024","cycle":74,"tier":"Professional","contract":"Monthly"},{"date":"4/2/2024","source":"Content Marketing","id":"L00169","company":"Cloud Innovations","industry":"Technology","size":"SMB","rep":"Michael Rodriguez","stage":"SQL","value":23612,"closeDate":null,"cycle":22,"tier":"Professional","contract":"Multi-year"},{"date":"4/6/2024","source":"Referral","id":"L00134","company":"EliteLabs","industry":"Healthcare","size":"SMB","rep":"Michael Rodriguez","stage":"Closed-Won","value":19229,"closeDate":"4/28/2024","cycle":22,"tier":"Starter","contract":"Monthly"},{"date":"4/8/2024","source":"Organic","id":"L00005","company":"Apex Analytics","industry":"Real Estate","size":"Enterprise","rep":"Robert Kim","stage":"Closed-Won","value":150274,"closeDate":"8/29/2024","cycle":143,"tier":"Enterprise","contract":"Monthly"},{"date":"4/15/2024","source":"Organic","id":"L00055","company":"SummitSystems","industry":"Manufacturing","size":"SMB","rep":"Emily Thompson","stage":"Closed-Lost","value":23755,"closeDate":null,"cycle":31,"tier":"Professional","contract":"Monthly"},{"date":"4/18/2024","source":"Direct","id":"L00241","company":"Summit Solutions","industry":"Technology","size":"Mid-Market","rep":"Amanda Foster","stage":"Closed-Lost","value":48481,"closeDate":null,"cycle":80,"tier":"Professional","contract":"Monthly"},{"date":"4/19/2024","source":"Referral","id":"L00008","company":"Nova Labs","industry":"Professional Services","size":"SMB","rep":"David Park","stage":"Closed-Lost","value":24031,"closeDate":null,"cycle":22,"tier":"Starter","contract":"Multi-year"},{"date":"4/22/2024","source":"Content Marketing","id":"L00176","company":"QuantumLabs","industry":"Manufacturing","size":"SMB","rep":"Robert Kim","stage":"Opportunity","value":16938,"closeDate":null,"cycle":38,"tier":"Starter","contract":"Monthly"},{"date":"4/26/2024","source":"Referral","id":"L00193","company":"Prime Innovations","industry":"Financial Services","size":"SMB","rep":"Emily Thompson","stage":"Opportunity","value":16352,"closeDate":null,"cycle":29,"tier":"Starter","contract":"Monthly"},{"date":"4/27/2024","source":"Organic","id":"L00161","company":"Alpha Analytics","industry":"Financial Services","size":"SMB","rep":"Robert Kim","stage":"Closed-Won","value":18694,"closeDate":"5/28/2024","cycle":31,"tier":"Professional","contract":"Monthly"},{"date":"4/29/2024","source":"Content Marketing","id":"L00128","company":"OmegaLabs","industry":"Real Estate","size":"SMB","rep":"Michael Rodriguez","stage":"SQL","value":22579,"closeDate":null,"cycle":21,"tier":"Starter","contract":"Multi-year"},{"date":"4/29/2024","source":"Direct","id":"L00157","company":"NextSystems","industry":"Financial Services","size":"Mid-Market","rep":"Amanda Foster","stage":"Opportunity","value":39804,"closeDate":null,"cycle":63,"tier":"Professional","contract":"Monthly"},{"date":"5/3/2024","source":"Direct","id":"L00074","company":"Prime Systems","industry":"Manufacturing","size":"Enterprise","rep":"Robert Kim","stage":"Closed-Won","value":158119,"closeDate":"10/4/2024","cycle":154,"tier":"Enterprise","contract":"Multi-year"},{"date":"5/4/2024","source":"Organic","id":"L00017","company":"AlphaSystems","industry":"Healthcare","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":13676,"closeDate":null,"cycle":38,"tier":"Starter","contract":"Multi-year"},{"date":"5/7/2024","source":"Organic","id":"L00225","company":"DigitalVentures","industry":"Retail","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Won","value":66252,"closeDate":"7/30/2024","cycle":84,"tier":"Professional","contract":"Monthly"},{"date":"5/10/2024","source":"Paid Ads","id":"L00188","company":"GlobalInnovations","industry":"Manufacturing","size":"Mid-Market","rep":"David Park","stage":"Closed-Lost","value":34442,"closeDate":null,"cycle":73,"tier":"Professional","contract":"Monthly"},{"date":"5/11/2024","source":"Events","id":"L00057","company":"Elite Analytics","industry":"Retail","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Won","value":33957,"closeDate":"7/25/2024","cycle":75,"tier":"Professional","contract":"Annual"},{"date":"5/16/2024","source":"Paid Ads","id":"L00045","company":"NovaInnovations","industry":"Manufacturing","size":"SMB","rep":"Sarah Chen","stage":"Closed-Won","value":15675,"closeDate":"6/14/2024","cycle":29,"tier":"Professional","contract":"Annual"},{"date":"5/16/2024","source":"Paid Ads","id":"L00091","company":"NovaCorp","industry":"Technology","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":20725,"closeDate":null,"cycle":25,"tier":"Professional","contract":"Monthly"},{"date":"5/19/2024","source":"Referral","id":"L00076","company":"Vertex Plus","industry":"Real Estate","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Won","value":114731,"closeDate":"10/30/2024","cycle":164,"tier":"Enterprise","contract":"Multi-year"},{"date":"5/21/2024","source":"Organic","id":"L00046","company":"Smart Plus","industry":"Education","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Lost","value":72061,"closeDate":null,"cycle":81,"tier":"Professional","contract":"Monthly"},{"date":"5/22/2024","source":"Referral","id":"L00105","company":"Tech Group","industry":"Financial Services","size":"SMB","rep":"Michael Rodriguez","stage":"MQL","value":16259,"closeDate":null,"cycle":20,"tier":"Starter","contract":"Monthly"},{"date":"6/14/2024","source":"Organic","id":"L00018","company":"ApexPartners","industry":"Financial Services","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":12684,"closeDate":"7/24/2024","cycle":40,"tier":"Starter","contract":"Multi-year"},{"date":"6/15/2024","source":"Organic","id":"L00115","company":"BetaSystems","industry":"Technology","size":"SMB","rep":"Robert Kim","stage":"Opportunity","value":13500,"closeDate":null,"cycle":26,"tier":"Starter","contract":"Annual"},{"date":"6/16/2024","source":"Direct","id":"L00065","company":"SmartCorp","industry":"Technology","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Won","value":36764,"closeDate":"9/8/2024","cycle":84,"tier":"Professional","contract":"Multi-year"},{"date":"6/16/2024","source":"Direct","id":"L00099","company":"Prime Ventures","industry":"Healthcare","size":"Mid-Market","rep":"Amanda Foster","stage":"Closed-Lost","value":45190,"closeDate":null,"cycle":72,"tier":"Professional","contract":"Annual"},{"date":"6/16/2024","source":"Referral","id":"L00250","company":"Prime Analytics","industry":"Retail","size":"Enterprise","rep":"James Martinez","stage":"MQL","value":94122,"closeDate":null,"cycle":113,"tier":"Enterprise","contract":"Multi-year"},{"date":"6/17/2024","source":"Organic","id":"L00172","company":"AlphaCorp","industry":"Technology","size":"SMB","rep":"David Park","stage":"SQL","value":16932,"closeDate":null,"cycle":35,"tier":"Starter","contract":"Annual"},{"date":"6/19/2024","source":"Organic","id":"L00177","company":"Alpha Technologies","industry":"Healthcare","size":"Enterprise","rep":"Robert Kim","stage":"Closed-Won","value":124919,"closeDate":"9/21/2024","cycle":94,"tier":"Enterprise","contract":"Monthly"},{"date":"6/24/2024","source":"Paid Ads","id":"L00131","company":"PrimePlus","industry":"Manufacturing","size":"Mid-Market","rep":"Amanda Foster","stage":"Closed-Won","value":36893,"closeDate":"9/18/2024","cycle":86,"tier":"Professional","contract":"Monthly"},{"date":"6/27/2024","source":"Organic","id":"L00086","company":"Alpha Labs","industry":"Real Estate","size":"SMB","rep":"Michael Rodriguez","stage":"Opportunity","value":18981,"closeDate":null,"cycle":34,"tier":"Starter","contract":"Annual"},{"date":"6/30/2024","source":"Organic","id":"L00050","company":"Tech Ventures","industry":"Real Estate","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":13316,"closeDate":"8/3/2024","cycle":34,"tier":"Starter","contract":"Monthly"},{"date":"7/1/2024","source":"Referral","id":"L00143","company":"Global Solutions","industry":"Technology","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Lost","value":176274,"closeDate":null,"cycle":115,"tier":"Enterprise","contract":"Annual"},{"date":"7/6/2024","source":"Organic","id":"L00048","company":"NovaSolutions","industry":"Real Estate","size":"SMB","rep":"Robert Kim","stage":"Closed-Lost","value":21604,"closeDate":null,"cycle":36,"tier":"Starter","contract":"Multi-year"},{"date":"7/10/2024","source":"Organic","id":"L00142","company":"Global Plus","industry":"Real Estate","size":"Enterprise","rep":"James Martinez","stage":"MQL","value":113989,"closeDate":null,"cycle":98,"tier":"Enterprise","contract":"Annual"},{"date":"7/10/2024","source":"Paid Ads","id":"L00224","company":"TechTechnologies","industry":"Real Estate","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Lost","value":50873,"closeDate":null,"cycle":65,"tier":"Professional","contract":"Multi-year"},{"date":"7/12/2024","source":"Organic","id":"L00229","company":"Prime Technologies","industry":"Manufacturing","size":"SMB","rep":"David Park","stage":"Closed-Lost","value":17806,"closeDate":null,"cycle":34,"tier":"Professional","contract":"Annual"},{"date":"7/17/2024","source":"Paid Ads","id":"L00174","company":"Nova Inc","industry":"Healthcare","size":"SMB","rep":"Robert Kim","stage":"Closed-Lost","value":21850,"closeDate":null,"cycle":44,"tier":"Starter","contract":"Monthly"},{"date":"7/18/2024","source":"Paid Ads","id":"L00003","company":"Apex Group","industry":"Technology","size":"Enterprise","rep":"Jessica Williams","stage":"Closed-Lost","value":243233,"closeDate":null,"cycle":158,"tier":"Enterprise","contract":"Multi-year"},{"date":"7/21/2024","source":"Referral","id":"L00145","company":"Global Technologies","industry":"Retail","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Won","value":41223,"closeDate":"9/9/2024","cycle":50,"tier":"Professional","contract":"Multi-year"},{"date":"7/22/2024","source":"Referral","id":"L00182","company":"Cloud Inc","industry":"Technology","size":"Mid-Market","rep":"Sarah Chen","stage":"Opportunity","value":49703,"closeDate":null,"cycle":77,"tier":"Professional","contract":"Monthly"},{"date":"7/27/2024","source":"Paid Ads","id":"L00032","company":"Nova Plus","industry":"Financial Services","size":"Mid-Market","rep":"Amanda Foster","stage":"Closed-Won","value":31905,"closeDate":"10/9/2024","cycle":74,"tier":"Professional","contract":"Monthly"},{"date":"7/28/2024","source":"Referral","id":"L00078","company":"BetaPlus","industry":"Technology","size":"Enterprise","rep":"Michael Rodriguez","stage":"MQL","value":195206,"closeDate":null,"cycle":135,"tier":"Enterprise","contract":"Monthly"},{"date":"7/30/2024","source":"Organic","id":"L00114","company":"BetaVentures","industry":"Retail","size":"Mid-Market","rep":"Jessica Williams","stage":"MQL","value":74917,"closeDate":null,"cycle":47,"tier":"Professional","contract":"Multi-year"},{"date":"7/31/2024","source":"Organic","id":"L00192","company":"Beta Labs","industry":"Real Estate","size":"Mid-Market","rep":"Michael Rodriguez","stage":"MQL","value":42232,"closeDate":null,"cycle":67,"tier":"Professional","contract":"Annual"},{"date":"8/1/2024","source":"Content Marketing","id":"L00149","company":"SmartCorp","industry":"Real Estate","size":"Mid-Market","rep":"Emily Thompson","stage":"MQL","value":62264,"closeDate":null,"cycle":75,"tier":"Professional","contract":"Annual"},{"date":"8/2/2024","source":"Organic","id":"L00038","company":"Summit Inc","industry":"Technology","size":"Mid-Market","rep":"James Martinez","stage":"SQL","value":70817,"closeDate":null,"cycle":57,"tier":"Professional","contract":"Annual"},{"date":"8/3/2024","source":"Paid Ads","id":"L00141","company":"BetaSystems","industry":"Real Estate","size":"Mid-Market","rep":"Jessica Williams","stage":"Closed-Won","value":38739,"closeDate":"9/20/2024","cycle":48,"tier":"Professional","contract":"Annual"},{"date":"8/3/2024","source":"Referral","id":"L00167","company":"QuantumEnterprises","industry":"Healthcare","size":"Enterprise","rep":"Amanda Foster","stage":"Closed-Won","value":203075,"closeDate":"12/27/2024","cycle":146,"tier":"Enterprise","contract":"Annual"},{"date":"8/16/2024","source":"Referral","id":"L00116","company":"AlphaTechnologies","industry":"Retail","size":"SMB","rep":"Amanda Foster","stage":"Opportunity","value":20603,"closeDate":null,"cycle":41,"tier":"Starter","contract":"Multi-year"},{"date":"8/16/2024","source":"Organic","id":"L00121","company":"TechInnovations","industry":"Real Estate","size":"SMB","rep":"David Park","stage":"Opportunity","value":24065,"closeDate":null,"cycle":24,"tier":"Starter","contract":"Monthly"},{"date":"8/25/2024","source":"Referral","id":"L00019","company":"VertexPlus","industry":"Retail","size":"Enterprise","rep":"Emily Thompson","stage":"Closed-Lost","value":104210,"closeDate":null,"cycle":154,"tier":"Enterprise","contract":"Annual"},{"date":"8/26/2024","source":"Paid Ads","id":"L00199","company":"QuantumPlus","industry":"Technology","size":"Enterprise","rep":"Jessica Williams","stage":"Opportunity","value":149906,"closeDate":null,"cycle":102,"tier":"Enterprise","contract":"Monthly"},{"date":"8/27/2024","source":"Organic","id":"L00217","company":"GlobalPlus","industry":"Healthcare","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Lost","value":56738,"closeDate":null,"cycle":80,"tier":"Professional","contract":"Annual"},{"date":"8/30/2024","source":"Events","id":"L00240","company":"ApexLabs","industry":"Healthcare","size":"Enterprise","rep":"James Martinez","stage":"Closed-Lost","value":138111,"closeDate":null,"cycle":124,"tier":"Enterprise","contract":"Monthly"},{"date":"9/3/2024","source":"Events","id":"L00127","company":"NextLabs","industry":"Professional Services","size":"Mid-Market","rep":"Amanda Foster","stage":"Opportunity","value":71125,"closeDate":null,"cycle":57,"tier":"Professional","contract":"Annual"},{"date":"9/3/2024","source":"Paid Ads","id":"L00211","company":"Prime Partners","industry":"Retail","size":"SMB","rep":"Michael Rodriguez","stage":"Closed-Won","value":15058,"closeDate":"9/26/2024","cycle":23,"tier":"Starter","contract":"Multi-year"},{"date":"9/7/2024","source":"Organic","id":"L00020","company":"Alpha Innovations","industry":"Education","size":"SMB","rep":"James Martinez","stage":"Closed-Lost","value":16073,"closeDate":null,"cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"9/9/2024","source":"Paid Ads","id":"L00190","company":"Beta Plus","industry":"Retail","size":"SMB","rep":"James Martinez","stage":"SQL","value":13192,"closeDate":null,"cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"9/10/2024","source":"Events","id":"L00100","company":"Summit Plus","industry":"Education","size":"Mid-Market","rep":"David Park","stage":"Closed-Lost","value":55075,"closeDate":null,"cycle":51,"tier":"Professional","contract":"Monthly"},{"date":"9/10/2024","source":"Content Marketing","id":"L00160","company":"EliteAnalytics","industry":"Technology","size":"Enterprise","rep":"Emily Thompson","stage":"Opportunity","value":106701,"closeDate":null,"cycle":118,"tier":"Enterprise","contract":"Multi-year"},{"date":"9/18/2024","source":"Referral","id":"L00231","company":"NovaLabs","industry":"Financial Services","size":"SMB","rep":"Sarah Chen","stage":"Closed-Won","value":22879,"closeDate":"10/29/2024","cycle":41,"tier":"Starter","contract":"Annual"},{"date":"9/21/2024","source":"Content Marketing","id":"L00073","company":"SummitTechnologies","industry":"Professional Services","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Lost","value":43151,"closeDate":null,"cycle":70,"tier":"Professional","contract":"Multi-year"},{"date":"9/27/2024","source":"Paid Ads","id":"L00009","company":"Cloud Innovations","industry":"Technology","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":19957,"closeDate":null,"cycle":20,"tier":"Starter","contract":"Annual"},{"date":"9/27/2024","source":"Paid Ads","id":"L00024","company":"Quantum Solutions","industry":"Healthcare","size":"SMB","rep":"Michael Rodriguez","stage":"Opportunity","value":21895,"closeDate":null,"cycle":25,"tier":"Starter","contract":"Multi-year"},{"date":"9/28/2024","source":"Direct","id":"L00154","company":"SmartGroup","industry":"Retail","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Won","value":51471,"closeDate":"12/20/2024","cycle":83,"tier":"Professional","contract":"Multi-year"},{"date":"9/28/2024","source":"Referral","id":"L00205","company":"Quantum Partners","industry":"Manufacturing","size":"Enterprise","rep":"Robert Kim","stage":"Opportunity","value":193063,"closeDate":null,"cycle":166,"tier":"Enterprise","contract":"Monthly"},{"date":"9/29/2024","source":"Paid Ads","id":"L00036","company":"Summit Systems","industry":"Financial Services","size":"Mid-Market","rep":"David Park","stage":"Closed-Won","value":44090,"closeDate":"12/23/2024","cycle":85,"tier":"Professional","contract":"Multi-year"},{"date":"9/30/2024","source":"Paid Ads","id":"L00144","company":"Digital Systems","industry":"Professional Services","size":"SMB","rep":"Amanda Foster","stage":"SQL","value":24626,"closeDate":null,"cycle":43,"tier":"Professional","contract":"Monthly"},{"date":"10/2/2024","source":"Content Marketing","id":"L00016","company":"Quantum Solutions","industry":"Education","size":"SMB","rep":"Michael Rodriguez","stage":"Opportunity","value":16726,"closeDate":null,"cycle":34,"tier":"Starter","contract":"Monthly"},{"date":"10/3/2024","source":"Referral","id":"L00239","company":"AlphaVentures","industry":"Healthcare","size":"Enterprise","rep":"Robert Kim","stage":"Opportunity","value":144977,"closeDate":null,"cycle":104,"tier":"Enterprise","contract":"Monthly"},{"date":"10/10/2024","source":"Paid Ads","id":"L00047","company":"VertexInnovations","industry":"Technology","size":"Enterprise","rep":"Jessica Williams","stage":"MQL","value":173270,"closeDate":null,"cycle":111,"tier":"Enterprise","contract":"Monthly"},{"date":"10/11/2024","source":"Organic","id":"L00203","company":"Smart Ventures","industry":"Real Estate","size":"Enterprise","rep":"Robert Kim","stage":"SQL","value":129032,"closeDate":null,"cycle":169,"tier":"Enterprise","contract":"Multi-year"},{"date":"10/11/2024","source":"Organic","id":"L00207","company":"Elite Analytics","industry":"Financial Services","size":"Mid-Market","rep":"Jessica Williams","stage":"Opportunity","value":31515,"closeDate":null,"cycle":56,"tier":"Professional","contract":"Annual"},{"date":"10/12/2024","source":"Organic","id":"L00079","company":"Elite Analytics","industry":"Technology","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":32207,"closeDate":"12/10/2024","cycle":59,"tier":"Professional","contract":"Monthly"},{"date":"10/14/2024","source":"Content Marketing","id":"L00215","company":"NovaPlus","industry":"Real Estate","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Lost","value":52633,"closeDate":null,"cycle":51,"tier":"Professional","contract":"Annual"},{"date":"10/17/2024","source":"Referral","id":"L00242","company":"Smart Corp","industry":"Technology","size":"Enterprise","rep":"Emily Thompson","stage":"Opportunity","value":135691,"closeDate":null,"cycle":166,"tier":"Enterprise","contract":"Annual"},{"date":"10/25/2024","source":"Content Marketing","id":"L00213","company":"BetaPartners","industry":"Professional Services","size":"Mid-Market","rep":"Michael Rodriguez","stage":"MQL","value":48088,"closeDate":null,"cycle":87,"tier":"Professional","contract":"Monthly"},{"date":"10/27/2024","source":"Content Marketing","id":"L00165","company":"Global Plus","industry":"Healthcare","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":35296,"closeDate":"1/14/2025","cycle":79,"tier":"Professional","contract":"Annual"},{"date":"10/27/2024","source":"Referral","id":"L00209","company":"BetaInc","industry":"Professional Services","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Won","value":60194,"closeDate":"1/12/2025","cycle":77,"tier":"Professional","contract":"Monthly"},{"date":"11/1/2024","source":"Content Marketing","id":"L00138","company":"VertexLabs","industry":"Technology","size":"SMB","rep":"James Martinez","stage":"Closed-Lost","value":22975,"closeDate":null,"cycle":42,"tier":"Professional","contract":"Multi-year"},{"date":"11/3/2024","source":"Referral","id":"L00170","company":"BetaLabs","industry":"Financial Services","size":"Enterprise","rep":"Sarah Chen","stage":"Closed-Lost","value":157903,"closeDate":null,"cycle":173,"tier":"Enterprise","contract":"Multi-year"},{"date":"11/10/2024","source":"Organic","id":"L00101","company":"Alpha Solutions","industry":"Real Estate","size":"Enterprise","rep":"Michael Rodriguez","stage":"Opportunity","value":238531,"closeDate":null,"cycle":135,"tier":"Enterprise","contract":"Annual"},{"date":"11/10/2024","source":"Paid Ads","id":"L00178","company":"Prime Solutions","industry":"Technology","size":"Enterprise","rep":"Amanda Foster","stage":"Closed-Lost","value":143394,"closeDate":null,"cycle":128,"tier":"Enterprise","contract":"Annual"},{"date":"11/15/2024","source":"Referral","id":"L00054","company":"Elite Partners","industry":"Technology","size":"Enterprise","rep":"David Park","stage":"Opportunity","value":137578,"closeDate":null,"cycle":142,"tier":"Enterprise","contract":"Monthly"},{"date":"11/15/2024","source":"Paid Ads","id":"L00162","company":"Nova Plus","industry":"Professional Services","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":16535,"closeDate":null,"cycle":44,"tier":"Starter","contract":"Annual"},{"date":"11/22/2024","source":"Referral","id":"L00007","company":"Summit Innovations","industry":"Manufacturing","size":"Mid-Market","rep":"David Park","stage":"Opportunity","value":73834,"closeDate":null,"cycle":52,"tier":"Professional","contract":"Multi-year"},{"date":"11/24/2024","source":"Paid Ads","id":"L00022","company":"PrimePartners","industry":"Real Estate","size":"SMB","rep":"Robert Kim","stage":"Opportunity","value":22645,"closeDate":null,"cycle":31,"tier":"Starter","contract":"Annual"},{"date":"11/25/2024","source":"Direct","id":"L00087","company":"Beta Ventures","industry":"Real Estate","size":"SMB","rep":"Amanda Foster","stage":"SQL","value":13852,"closeDate":null,"cycle":34,"tier":"Starter","contract":"Multi-year"},{"date":"11/27/2024","source":"Organic","id":"L00226","company":"Tech Analytics","industry":"Technology","size":"SMB","rep":"Sarah Chen","stage":"Closed-Lost","value":18354,"closeDate":null,"cycle":34,"tier":"Professional","contract":"Multi-year"},{"date":"12/2/2024","source":"Paid Ads","id":"L00037","company":"CloudGroup","industry":"Professional Services","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":19924,"closeDate":"1/13/2025","cycle":42,"tier":"Starter","contract":"Multi-year"},{"date":"12/2/2024","source":"Referral","id":"L00094","company":"Quantum Enterprises","industry":"Real Estate","size":"Enterprise","rep":"James Martinez","stage":"Opportunity","value":206036,"closeDate":null,"cycle":162,"tier":"Enterprise","contract":"Multi-year"},{"date":"12/4/2024","source":"Events","id":"L00043","company":"SummitVentures","industry":"Education","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":59241,"closeDate":"1/30/2025","cycle":57,"tier":"Professional","contract":"Annual"},{"date":"12/6/2024","source":"Paid Ads","id":"L00075","company":"AlphaInc","industry":"Healthcare","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":22681,"closeDate":"1/17/2025","cycle":42,"tier":"Starter","contract":"Monthly"},{"date":"12/7/2024","source":"Paid Ads","id":"L00139","company":"Vertex Inc","industry":"Manufacturing","size":"SMB","rep":"Sarah Chen","stage":"Closed-Won","value":24372,"closeDate":"1/19/2025","cycle":43,"tier":"Professional","contract":"Annual"},{"date":"12/8/2024","source":"Direct","id":"L00132","company":"Vertex Corp","industry":"Healthcare","size":"Enterprise","rep":"Robert Kim","stage":"SQL","value":115901,"closeDate":null,"cycle":129,"tier":"Enterprise","contract":"Annual"},{"date":"12/9/2024","source":"Paid Ads","id":"L00232","company":"NextSystems","industry":"Real Estate","size":"SMB","rep":"David Park","stage":"Opportunity","value":12560,"closeDate":null,"cycle":27,"tier":"Starter","contract":"Multi-year"},{"date":"12/10/2024","source":"Content Marketing","id":"L00006","company":"Cloud Group","industry":"Healthcare","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":24683,"closeDate":"1/8/2025","cycle":29,"tier":"Professional","contract":"Multi-year"},{"date":"12/11/2024","source":"Paid Ads","id":"L00089","company":"QuantumCorp","industry":"Manufacturing","size":"SMB","rep":"Emily Thompson","stage":"Closed-Lost","value":19176,"closeDate":null,"cycle":41,"tier":"Professional","contract":"Multi-year"},{"date":"12/13/2024","source":"Organic","id":"L00123","company":"AlphaPartners","industry":"Healthcare","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Lost","value":37634,"closeDate":null,"cycle":64,"tier":"Professional","contract":"Multi-year"},{"date":"12/17/2024","source":"Paid Ads","id":"L00072","company":"Elite Enterprises","industry":"Retail","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Won","value":60146,"closeDate":"2/24/2025","cycle":69,"tier":"Professional","contract":"Multi-year"},{"date":"12/18/2024","source":"Organic","id":"L00066","company":"Alpha Labs","industry":"Professional Services","size":"Mid-Market","rep":"Sarah Chen","stage":"Opportunity","value":68767,"closeDate":null,"cycle":55,"tier":"Professional","contract":"Annual"},{"date":"12/18/2024","source":"Organic","id":"L00070","company":"SummitSolutions","industry":"Professional Services","size":"SMB","rep":"Emily Thompson","stage":"Opportunity","value":19256,"closeDate":null,"cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"12/19/2024","source":"Organic","id":"L00248","company":"Global Solutions","industry":"Real Estate","size":"SMB","rep":"Sarah Chen","stage":"Closed-Won","value":17071,"closeDate":"1/13/2025","cycle":25,"tier":"Starter","contract":"Multi-year"},{"date":"12/20/2024","source":"Organic","id":"L00103","company":"SmartInnovations","industry":"Retail","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Won","value":182093,"closeDate":"5/18/2025","cycle":149,"tier":"Enterprise","contract":"Annual"},{"date":"12/20/2024","source":"Content Marketing","id":"L00158","company":"Smart Group","industry":"Healthcare","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":38185,"closeDate":"3/10/2025","cycle":80,"tier":"Professional","contract":"Monthly"},{"date":"12/23/2024","source":"Referral","id":"L00168","company":"Vertex Enterprises","industry":"Education","size":"Enterprise","rep":"Jessica Williams","stage":"Closed-Won","value":238913,"closeDate":"6/12/2025","cycle":171,"tier":"Enterprise","contract":"Multi-year"},{"date":"12/23/2024","source":"Referral","id":"L00212","company":"Global Technologies","industry":"Retail","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":18029,"closeDate":"1/24/2025","cycle":32,"tier":"Starter","contract":"Multi-year"},{"date":"12/26/2024","source":"Referral","id":"L00235","company":"Vertex Analytics","industry":"Real Estate","size":"SMB","rep":"Sarah Chen","stage":"Opportunity","value":16479,"closeDate":null,"cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"12/28/2024","source":"Direct","id":"L00140","company":"Prime Ventures","industry":"Financial Services","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Lost","value":39909,"closeDate":null,"cycle":70,"tier":"Professional","contract":"Annual"},{"date":"12/29/2024","source":"Paid Ads","id":"L00088","company":"Quantum Ventures","industry":"Financial Services","size":"Enterprise","rep":"David Park","stage":"Closed-Lost","value":151480,"closeDate":null,"cycle":178,"tier":"Enterprise","contract":"Monthly"},{"date":"12/29/2024","source":"Referral","id":"L00097","company":"Omega Group","industry":"Retail","size":"Enterprise","rep":"Jessica Williams","stage":"SQL","value":169717,"closeDate":null,"cycle":102,"tier":"Enterprise","contract":"Monthly"},{"date":"12/29/2024","source":"Organic","id":"L00171","company":"Elite Labs","industry":"Healthcare","size":"Mid-Market","rep":"Sarah Chen","stage":"SQL","value":50669,"closeDate":null,"cycle":86,"tier":"Professional","contract":"Monthly"},{"date":"12/31/2024","source":"Paid Ads","id":"L00133","company":"Elite Technologies","industry":"Technology","size":"Mid-Market","rep":"David Park","stage":"Closed-Lost","value":49320,"closeDate":null,"cycle":81,"tier":"Professional","contract":"Multi-year"},{"date":"1/1/2025","source":"Referral","id":"L00060","company":"NovaTechnologies","industry":"Technology","size":"Enterprise","rep":"Robert Kim","stage":"Closed-Won","value":220125,"closeDate":"4/29/2025","cycle":118,"tier":"Enterprise","contract":"Multi-year"},{"date":"1/2/2025","source":"Content Marketing","id":"L00010","company":"QuantumGroup","industry":"Manufacturing","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Opportunity","value":60328,"closeDate":null,"cycle":66,"tier":"Professional","contract":"Monthly"},{"date":"1/2/2025","source":"Referral","id":"L00062","company":"Nova Partners","industry":"Financial Services","size":"Enterprise","rep":"James Martinez","stage":"Closed-Won","value":172129,"closeDate":"4/23/2025","cycle":111,"tier":"Enterprise","contract":"Annual"},{"date":"1/2/2025","source":"Organic","id":"L00180","company":"Next Corp","industry":"Manufacturing","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":15060,"closeDate":"2/8/2025","cycle":37,"tier":"Starter","contract":"Monthly"},{"date":"1/5/2025","source":"Paid Ads","id":"L00014","company":"Alpha Enterprises","industry":"Technology","size":"SMB","rep":"James Martinez","stage":"Closed-Lost","value":13291,"closeDate":null,"cycle":25,"tier":"Starter","contract":"Monthly"},{"date":"1/7/2025","source":"Paid Ads","id":"L00181","company":"Beta Inc","industry":"Education","size":"Mid-Market","rep":"Sarah Chen","stage":"Opportunity","value":70217,"closeDate":null,"cycle":65,"tier":"Professional","contract":"Annual"},{"date":"1/8/2025","source":"Direct","id":"L00130","company":"VertexInnovations","industry":"Financial Services","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Lost","value":46254,"closeDate":null,"cycle":86,"tier":"Professional","contract":"Multi-year"},{"date":"1/11/2025","source":"Direct","id":"L00004","company":"Summit Solutions","industry":"Retail","size":"Mid-Market","rep":"James Martinez","stage":"Opportunity","value":39419,"closeDate":null,"cycle":88,"tier":"Professional","contract":"Multi-year"},{"date":"1/15/2025","source":"Events","id":"L00238","company":"Next Ventures","industry":"Manufacturing","size":"SMB","rep":"Sarah Chen","stage":"Closed-Lost","value":20902,"closeDate":null,"cycle":40,"tier":"Starter","contract":"Multi-year"},{"date":"1/17/2025","source":"Direct","id":"L00044","company":"Cloud Solutions","industry":"Professional Services","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Won","value":142144,"closeDate":"6/2/2025","cycle":136,"tier":"Enterprise","contract":"Annual"},{"date":"1/23/2025","source":"Paid Ads","id":"L00223","company":"NovaInnovations","industry":"Technology","size":"Enterprise","rep":"Sarah Chen","stage":"Closed-Won","value":108203,"closeDate":"7/16/2025","cycle":174,"tier":"Enterprise","contract":"Monthly"},{"date":"1/25/2025","source":"Organic","id":"L00110","company":"DigitalEnterprises","industry":"Retail","size":"SMB","rep":"Robert Kim","stage":"Closed-Won","value":15317,"closeDate":"3/10/2025","cycle":44,"tier":"Professional","contract":"Monthly"},{"date":"1/25/2025","source":"Paid Ads","id":"L00247","company":"VertexInnovations","industry":"Financial Services","size":"SMB","rep":"David Park","stage":"Opportunity","value":19434,"closeDate":null,"cycle":40,"tier":"Professional","contract":"Monthly"},{"date":"1/27/2025","source":"Events","id":"L00090","company":"ApexPlus","industry":"Education","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":14963,"closeDate":"3/1/2025","cycle":33,"tier":"Starter","contract":"Multi-year"},{"date":"1/27/2025","source":"Organic","id":"L00228","company":"AlphaGroup","industry":"Education","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Lost","value":98456,"closeDate":null,"cycle":109,"tier":"Enterprise","contract":"Monthly"},{"date":"2/1/2025","source":"Paid Ads","id":"L00093","company":"Summit Innovations","industry":"Professional Services","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Opportunity","value":74864,"closeDate":null,"cycle":77,"tier":"Professional","contract":"Monthly"},{"date":"2/1/2025","source":"Organic","id":"L00117","company":"BetaSolutions","industry":"Financial Services","size":"Enterprise","rep":"David Park","stage":"SQL","value":233635,"closeDate":null,"cycle":169,"tier":"Enterprise","contract":"Multi-year"},{"date":"2/3/2025","source":"Paid Ads","id":"L00202","company":"Alpha Analytics","industry":"Financial Services","size":"Mid-Market","rep":"Robert Kim","stage":"Opportunity","value":53703,"closeDate":null,"cycle":83,"tier":"Professional","contract":"Multi-year"},{"date":"2/8/2025","source":"Content Marketing","id":"L00200","company":"Elite Labs","industry":"Real Estate","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Lost","value":72016,"closeDate":null,"cycle":63,"tier":"Professional","contract":"Monthly"},{"date":"2/14/2025","source":"Events","id":"L00034","company":"Tech Enterprises","industry":"Manufacturing","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Won","value":56589,"closeDate":"5/6/2025","cycle":81,"tier":"Professional","contract":"Multi-year"},{"date":"2/16/2025","source":"Organic","id":"L00187","company":"Vertex Innovations","industry":"Education","size":"Enterprise","rep":"James Martinez","stage":"Opportunity","value":132049,"closeDate":null,"cycle":171,"tier":"Enterprise","contract":"Annual"},{"date":"2/18/2025","source":"Organic","id":"L00163","company":"Global Inc","industry":"Retail","size":"Enterprise","rep":"Michael Rodriguez","stage":"Opportunity","value":184954,"closeDate":null,"cycle":113,"tier":"Enterprise","contract":"Monthly"},{"date":"2/22/2025","source":"Organic","id":"L00191","company":"CloudPartners","industry":"Real Estate","size":"Enterprise","rep":"Robert Kim","stage":"Closed-Lost","value":202705,"closeDate":null,"cycle":173,"tier":"Enterprise","contract":"Annual"},{"date":"2/25/2025","source":"Content Marketing","id":"L00058","company":"CloudTechnologies","industry":"Technology","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Lost","value":129012,"closeDate":null,"cycle":108,"tier":"Enterprise","contract":"Monthly"},{"date":"2/27/2025","source":"Organic","id":"L00218","company":"SummitLabs","industry":"Manufacturing","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Lost","value":72075,"closeDate":null,"cycle":89,"tier":"Professional","contract":"Annual"},{"date":"3/1/2025","source":"Paid Ads","id":"L00150","company":"DigitalPlus","industry":"Healthcare","size":"Enterprise","rep":"Sarah Chen","stage":"Closed-Lost","value":108115,"closeDate":null,"cycle":169,"tier":"Enterprise","contract":"Monthly"},{"date":"3/2/2025","source":"Content Marketing","id":"L00219","company":"Smart Inc","industry":"Professional Services","size":"SMB","rep":"Sarah Chen","stage":"Opportunity","value":16798,"closeDate":null,"cycle":37,"tier":"Starter","contract":"Annual"},{"date":"3/4/2025","source":"Content Marketing","id":"L00179","company":"ApexEnterprises","industry":"Technology","size":"SMB","rep":"David Park","stage":"Closed-Lost","value":22654,"closeDate":null,"cycle":36,"tier":"Starter","contract":"Monthly"},{"date":"3/7/2025","source":"Events","id":"L00243","company":"ApexGroup","industry":"Education","size":"Mid-Market","rep":"Sarah Chen","stage":"Closed-Won","value":58841,"closeDate":"4/26/2025","cycle":50,"tier":"Professional","contract":"Annual"},{"date":"3/10/2025","source":"Content Marketing","id":"L00234","company":"SmartCorp","industry":"Manufacturing","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Won","value":68605,"closeDate":"5/28/2025","cycle":79,"tier":"Professional","contract":"Multi-year"},{"date":"3/11/2025","source":"Referral","id":"L00206","company":"Cloud Labs","industry":"Healthcare","size":"SMB","rep":"Jessica Williams","stage":"SQL","value":12030,"closeDate":null,"cycle":26,"tier":"Starter","contract":"Annual"},{"date":"3/13/2025","source":"Referral","id":"L00040","company":"Next Inc","industry":"Retail","size":"Mid-Market","rep":"David Park","stage":"SQL","value":55683,"closeDate":null,"cycle":81,"tier":"Professional","contract":"Multi-year"},{"date":"3/16/2025","source":"Content Marketing","id":"L00152","company":"OmegaInc","industry":"Technology","size":"Enterprise","rep":"Sarah Chen","stage":"Closed-Lost","value":100949,"closeDate":null,"cycle":164,"tier":"Enterprise","contract":"Multi-year"},{"date":"3/18/2025","source":"Organic","id":"L00067","company":"GlobalCorp","industry":"Retail","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Won","value":180963,"closeDate":"9/2/2025","cycle":168,"tier":"Enterprise","contract":"Multi-year"},{"date":"3/22/2025","source":"Referral","id":"L00147","company":"QuantumLabs","industry":"Technology","size":"SMB","rep":"Emily Thompson","stage":"Opportunity","value":22667,"closeDate":null,"cycle":28,"tier":"Starter","contract":"Multi-year"},{"date":"3/25/2025","source":"Paid Ads","id":"L00201","company":"Vertex Group","industry":"Manufacturing","size":"Enterprise","rep":"Emily Thompson","stage":"Opportunity","value":118869,"closeDate":null,"cycle":93,"tier":"Enterprise","contract":"Annual"},{"date":"3/26/2025","source":"Organic","id":"L00111","company":"NextEnterprises","industry":"Technology","size":"SMB","rep":"Robert Kim","stage":"Closed-Lost","value":23983,"closeDate":null,"cycle":21,"tier":"Starter","contract":"Multi-year"},{"date":"3/28/2025","source":"Content Marketing","id":"L00049","company":"Vertex Enterprises","industry":"Retail","size":"SMB","rep":"Emily Thompson","stage":"Closed-Won","value":21465,"closeDate":"5/11/2025","cycle":44,"tier":"Professional","contract":"Annual"},{"date":"3/31/2025","source":"Organic","id":"L00196","company":"Vertex Solutions","industry":"Manufacturing","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Won","value":44452,"closeDate":"6/10/2025","cycle":71,"tier":"Professional","contract":"Monthly"},{"date":"4/3/2025","source":"Paid Ads","id":"L00124","company":"DigitalInnovations","industry":"Manufacturing","size":"SMB","rep":"James Martinez","stage":"MQL","value":23579,"closeDate":null,"cycle":24,"tier":"Professional","contract":"Multi-year"},{"date":"4/4/2025","source":"Paid Ads","id":"L00102","company":"GlobalSolutions","industry":"Technology","size":"Mid-Market","rep":"Sarah Chen","stage":"Closed-Won","value":63341,"closeDate":"5/28/2025","cycle":54,"tier":"Professional","contract":"Multi-year"},{"date":"4/7/2025","source":"Organic","id":"L00198","company":"Digital Enterprises","industry":"Professional Services","size":"Enterprise","rep":"Michael Rodriguez","stage":"Closed-Won","value":83559,"closeDate":"9/2/2025","cycle":148,"tier":"Enterprise","contract":"Monthly"},{"date":"4/8/2025","source":"Organic","id":"L00056","company":"CloudPlus","industry":"Professional Services","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":22440,"closeDate":"5/19/2025","cycle":41,"tier":"Professional","contract":"Monthly"},{"date":"4/9/2025","source":"Organic","id":"L00135","company":"SmartEnterprises","industry":"Manufacturing","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":20669,"closeDate":"5/18/2025","cycle":39,"tier":"Professional","contract":"Multi-year"},{"date":"4/10/2025","source":"Organic","id":"L00013","company":"Global Systems","industry":"Manufacturing","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Lost","value":51611,"closeDate":null,"cycle":88,"tier":"Professional","contract":"Annual"},{"date":"4/12/2025","source":"Referral","id":"L00084","company":"OmegaCorp","industry":"Manufacturing","size":"Mid-Market","rep":"Amanda Foster","stage":"Opportunity","value":51732,"closeDate":null,"cycle":57,"tier":"Professional","contract":"Monthly"},{"date":"4/12/2025","source":"Events","id":"L00194","company":"DigitalAnalytics","industry":"Financial Services","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Lost","value":59504,"closeDate":null,"cycle":84,"tier":"Professional","contract":"Monthly"},{"date":"4/20/2025","source":"Organic","id":"L00237","company":"Smart Ventures","industry":"Manufacturing","size":"SMB","rep":"Michael Rodriguez","stage":"Closed-Lost","value":15019,"closeDate":null,"cycle":33,"tier":"Starter","contract":"Annual"},{"date":"4/21/2025","source":"Organic","id":"L00246","company":"NextInnovations","industry":"Education","size":"SMB","rep":"Jessica Williams","stage":"Opportunity","value":17867,"closeDate":null,"cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"4/22/2025","source":"Organic","id":"L00026","company":"NextSolutions","industry":"Technology","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":23338,"closeDate":"6/5/2025","cycle":44,"tier":"Starter","contract":"Annual"},{"date":"4/22/2025","source":"Organic","id":"L00249","company":"VertexAnalytics","industry":"Education","size":"Mid-Market","rep":"Jessica Williams","stage":"Closed-Lost","value":31972,"closeDate":null,"cycle":48,"tier":"Professional","contract":"Monthly"},{"date":"4/25/2025","source":"Direct","id":"L00175","company":"Elite Innovations","industry":"Technology","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":19068,"closeDate":"6/2/2025","cycle":38,"tier":"Starter","contract":"Annual"},{"date":"4/29/2025","source":"Organic","id":"L00119","company":"Beta Plus","industry":"Technology","size":"SMB","rep":"Amanda Foster","stage":"SQL","value":16052,"closeDate":null,"cycle":37,"tier":"Professional","contract":"Annual"},{"date":"5/1/2025","source":"Paid Ads","id":"L00061","company":"Next Ventures","industry":"Real Estate","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":12366,"closeDate":null,"cycle":23,"tier":"Starter","contract":"Monthly"},{"date":"5/2/2025","source":"Organic","id":"L00023","company":"ApexVentures","industry":"Technology","size":"Mid-Market","rep":"Amanda Foster","stage":"Closed-Lost","value":60936,"closeDate":null,"cycle":81,"tier":"Professional","contract":"Multi-year"},{"date":"5/5/2025","source":"Paid Ads","id":"L00195","company":"OmegaPlus","industry":"Manufacturing","size":"SMB","rep":"Emily Thompson","stage":"Opportunity","value":19918,"closeDate":null,"cycle":33,"tier":"Starter","contract":"Monthly"},{"date":"5/7/2025","source":"Paid Ads","id":"L00197","company":"Prime Enterprises","industry":"Technology","size":"Enterprise","rep":"Amanda Foster","stage":"Closed-Won","value":92783,"closeDate":"8/25/2025","cycle":110,"tier":"Enterprise","contract":"Multi-year"},{"date":"5/10/2025","source":"Paid Ads","id":"L00156","company":"CloudInc","industry":"Real Estate","size":"Enterprise","rep":"Jessica Williams","stage":"MQL","value":224021,"closeDate":null,"cycle":125,"tier":"Enterprise","contract":"Monthly"},{"date":"5/15/2025","source":"Content Marketing","id":"L00041","company":"EliteTechnologies","industry":"Manufacturing","size":"Mid-Market","rep":"David Park","stage":"Closed-Won","value":51930,"closeDate":"7/19/2025","cycle":65,"tier":"Professional","contract":"Annual"},{"date":"5/16/2025","source":"Events","id":"L00015","company":"Summit Partners","industry":"Education","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Won","value":73077,"closeDate":"7/4/2025","cycle":49,"tier":"Professional","contract":"Multi-year"},{"date":"5/16/2025","source":"Organic","id":"L00208","company":"Smart Corp","industry":"Financial Services","size":"SMB","rep":"Amanda Foster","stage":"Closed-Won","value":24270,"closeDate":"6/29/2025","cycle":44,"tier":"Starter","contract":"Annual"},{"date":"5/16/2025","source":"Paid Ads","id":"L00233","company":"TechPartners","industry":"Real Estate","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Won","value":48671,"closeDate":"7/1/2025","cycle":46,"tier":"Professional","contract":"Annual"},{"date":"5/20/2025","source":"Paid Ads","id":"L00166","company":"Alpha Systems","industry":"Technology","size":"Mid-Market","rep":"Jessica Williams","stage":"Closed-Lost","value":48063,"closeDate":null,"cycle":77,"tier":"Professional","contract":"Multi-year"},{"date":"5/23/2025","source":"Events","id":"L00221","company":"Smart Innovations","industry":"Financial Services","size":"Mid-Market","rep":"Jessica Williams","stage":"Closed-Won","value":68540,"closeDate":"7/9/2025","cycle":47,"tier":"Professional","contract":"Annual"},{"date":"5/27/2025","source":"Direct","id":"L00220","company":"NovaGroup","industry":"Professional Services","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":21868,"closeDate":null,"cycle":40,"tier":"Starter","contract":"Multi-year"},{"date":"5/28/2025","source":"Referral","id":"L00148","company":"VertexSolutions","industry":"Financial Services","size":"SMB","rep":"David Park","stage":"Closed-Lost","value":12837,"closeDate":null,"cycle":36,"tier":"Professional","contract":"Multi-year"},{"date":"5/29/2025","source":"Paid Ads","id":"L00033","company":"CloudTechnologies","industry":"Retail","size":"Enterprise","rep":"Robert Kim","stage":"Closed-Won","value":232519,"closeDate":"10/8/2025","cycle":132,"tier":"Enterprise","contract":"Monthly"},{"date":"5/29/2025","source":"Organic","id":"L00081","company":"Cloud Corp","industry":"Technology","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Lost","value":45656,"closeDate":null,"cycle":84,"tier":"Professional","contract":"Annual"},{"date":"5/30/2025","source":"Organic","id":"L00222","company":"Omega Inc","industry":"Manufacturing","size":"Mid-Market","rep":"James Martinez","stage":"Opportunity","value":60268,"closeDate":null,"cycle":52,"tier":"Professional","contract":"Annual"},{"date":"6/1/2025","source":"Organic","id":"L00126","company":"EliteVentures","industry":"Healthcare","size":"SMB","rep":"Jessica Williams","stage":"Closed-Won","value":14350,"closeDate":"6/30/2025","cycle":29,"tier":"Starter","contract":"Annual"},{"date":"6/5/2025","source":"Paid Ads","id":"L00012","company":"ApexCorp","industry":"Financial Services","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":43275,"closeDate":"8/24/2025","cycle":80,"tier":"Professional","contract":"Multi-year"},{"date":"6/7/2025","source":"Referral","id":"L00053","company":"Next Group","industry":"Professional Services","size":"SMB","rep":"David Park","stage":"Closed-Won","value":22763,"closeDate":"7/19/2025","cycle":42,"tier":"Starter","contract":"Multi-year"},{"date":"6/10/2025","source":"Organic","id":"L00230","company":"Quantum Analytics","industry":"Real Estate","size":"SMB","rep":"Jessica Williams","stage":"Closed-Lost","value":14548,"closeDate":null,"cycle":42,"tier":"Starter","contract":"Annual"},{"date":"6/11/2025","source":"Organic","id":"L00210","company":"NextPartners","industry":"Financial Services","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":20869,"closeDate":null,"cycle":27,"tier":"Starter","contract":"Monthly"},{"date":"6/12/2025","source":"Direct","id":"L00118","company":"QuantumSystems","industry":"Financial Services","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Lost","value":53113,"closeDate":null,"cycle":87,"tier":"Professional","contract":"Multi-year"},{"date":"6/12/2025","source":"Content Marketing","id":"L00164","company":"Apex Corp","industry":"Financial Services","size":"Enterprise","rep":"Amanda Foster","stage":"Closed-Won","value":86672,"closeDate":"11/30/2025","cycle":171,"tier":"Enterprise","contract":"Multi-year"},{"date":"6/17/2025","source":"Organic","id":"L00112","company":"NovaPlus","industry":"Retail","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Lost","value":34160,"closeDate":null,"cycle":54,"tier":"Professional","contract":"Annual"},{"date":"6/22/2025","source":"Direct","id":"L00092","company":"ElitePartners","industry":"Professional Services","size":"SMB","rep":"James Martinez","stage":"Opportunity","value":17330,"closeDate":null,"cycle":34,"tier":"Starter","contract":"Multi-year"},{"date":"6/23/2025","source":"Content Marketing","id":"L00095","company":"Smart Innovations","industry":"Manufacturing","size":"Enterprise","rep":"Sarah Chen","stage":"Closed-Lost","value":92290,"closeDate":null,"cycle":171,"tier":"Enterprise","contract":"Annual"},{"date":"6/25/2025","source":"Organic","id":"L00108","company":"SmartPlus","industry":"Technology","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":12651,"closeDate":null,"cycle":39,"tier":"Starter","contract":"Annual"},{"date":"6/26/2025","source":"Organic","id":"L00125","company":"SmartLabs","industry":"Financial Services","size":"SMB","rep":"Jessica Williams","stage":"Closed-Lost","value":20142,"closeDate":null,"cycle":21,"tier":"Professional","contract":"Monthly"},{"date":"6/26/2025","source":"Organic","id":"L00137","company":"VertexEnterprises","industry":"Education","size":"Mid-Market","rep":"Amanda Foster","stage":"Closed-Won","value":71125,"closeDate":"8/15/2025","cycle":50,"tier":"Professional","contract":"Monthly"},{"date":"6/27/2025","source":"Paid Ads","id":"L00155","company":"Elite Labs","industry":"Healthcare","size":"Mid-Market","rep":"Emily Thompson","stage":"Opportunity","value":36149,"closeDate":null,"cycle":52,"tier":"Professional","contract":"Monthly"},{"date":"6/28/2025","source":"Direct","id":"L00001","company":"AlphaSystems","industry":"Technology","size":"Mid-Market","rep":"James Martinez","stage":"Closed-Won","value":34609,"closeDate":"8/17/2025","cycle":50,"tier":"Professional","contract":"Annual"},{"date":"6/28/2025","source":"Referral","id":"L00129","company":"Cloud Innovations","industry":"Manufacturing","size":"Mid-Market","rep":"Jessica Williams","stage":"Opportunity","value":68698,"closeDate":null,"cycle":63,"tier":"Professional","contract":"Annual"},{"date":"7/4/2025","source":"Referral","id":"L00096","company":"Global Corp","industry":"Healthcare","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Lost","value":61760,"closeDate":null,"cycle":64,"tier":"Professional","contract":"Multi-year"},{"date":"7/6/2025","source":"Paid Ads","id":"L00030","company":"NovaInnovations","industry":"Professional Services","size":"SMB","rep":"Robert Kim","stage":"Closed-Won","value":16585,"closeDate":"8/6/2025","cycle":31,"tier":"Starter","contract":"Multi-year"},{"date":"7/9/2025","source":"Content Marketing","id":"L00069","company":"BetaVentures","industry":"Professional Services","size":"SMB","rep":"Sarah Chen","stage":"Closed-Won","value":19816,"closeDate":"8/4/2025","cycle":26,"tier":"Professional","contract":"Annual"},{"date":"7/10/2025","source":"Organic","id":"L00051","company":"Next Corp","industry":"Education","size":"SMB","rep":"Emily Thompson","stage":"Opportunity","value":18396,"closeDate":null,"cycle":27,"tier":"Professional","contract":"Monthly"},{"date":"7/10/2025","source":"Paid Ads","id":"L00077","company":"SmartAnalytics","industry":"Retail","size":"Enterprise","rep":"Jessica Williams","stage":"Opportunity","value":160557,"closeDate":null,"cycle":113,"tier":"Enterprise","contract":"Multi-year"},{"date":"7/10/2025","source":"Organic","id":"L00227","company":"Smart Innovations","industry":"Healthcare","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":35294,"closeDate":"9/3/2025","cycle":55,"tier":"Professional","contract":"Multi-year"},{"date":"7/14/2025","source":"Paid Ads","id":"L00080","company":"VertexCorp","industry":"Manufacturing","size":"Mid-Market","rep":"David Park","stage":"SQL","value":31180,"closeDate":null,"cycle":79,"tier":"Professional","contract":"Monthly"},{"date":"7/19/2025","source":"Events","id":"L00136","company":"Cloud Labs","industry":"Manufacturing","size":"Mid-Market","rep":"Jessica Williams","stage":"Closed-Lost","value":66018,"closeDate":null,"cycle":67,"tier":"Professional","contract":"Annual"},{"date":"7/20/2025","source":"Content Marketing","id":"L00031","company":"Quantum Plus","industry":"Healthcare","size":"SMB","rep":"James Martinez","stage":"SQL","value":15136,"closeDate":null,"cycle":23,"tier":"Starter","contract":"Annual"},{"date":"7/22/2025","source":"Organic","id":"L00027","company":"SmartTechnologies","industry":"Education","size":"Enterprise","rep":"Amanda Foster","stage":"Opportunity","value":190146,"closeDate":null,"cycle":168,"tier":"Enterprise","contract":"Annual"},{"date":"7/24/2025","source":"Direct","id":"L00107","company":"NextLabs","industry":"Technology","size":"Enterprise","rep":"Emily Thompson","stage":"Closed-Lost","value":108493,"closeDate":null,"cycle":178,"tier":"Enterprise","contract":"Multi-year"},{"date":"7/26/2025","source":"Referral","id":"L00025","company":"Global Technologies","industry":"Real Estate","size":"Mid-Market","rep":"Michael Rodriguez","stage":"Closed-Won","value":66445,"closeDate":"9/22/2025","cycle":58,"tier":"Professional","contract":"Multi-year"},{"date":"7/26/2025","source":"Organic","id":"L00029","company":"QuantumTechnologies","industry":"Healthcare","size":"SMB","rep":"James Martinez","stage":"Closed-Won","value":22464,"closeDate":"8/16/2025","cycle":21,"tier":"Starter","contract":"Monthly"},{"date":"7/28/2025","source":"Organic","id":"L00063","company":"ElitePlus","industry":"Professional Services","size":"SMB","rep":"Sarah Chen","stage":"SQL","value":14389,"closeDate":null,"cycle":36,"tier":"Starter","contract":"Multi-year"},{"date":"7/30/2025","source":"Events","id":"L00146","company":"CloudInnovations","industry":"Financial Services","size":"Mid-Market","rep":"James Martinez","stage":"SQL","value":37253,"closeDate":null,"cycle":74,"tier":"Professional","contract":"Multi-year"},{"date":"7/31/2025","source":"Organic","id":"L00039","company":"Nova Corp","industry":"Education","size":"SMB","rep":"Jessica Williams","stage":"Closed-Won","value":21403,"closeDate":"9/1/2025","cycle":32,"tier":"Starter","contract":"Monthly"},{"date":"8/2/2025","source":"Paid Ads","id":"L00185","company":"AlphaAnalytics","industry":"Healthcare","size":"Mid-Market","rep":"Robert Kim","stage":"Closed-Won","value":32171,"closeDate":"10/7/2025","cycle":66,"tier":"Professional","contract":"Monthly"},{"date":"8/8/2025","source":"Referral","id":"L00153","company":"NovaPartners","industry":"Professional Services","size":"Enterprise","rep":"James Martinez","stage":"MQL","value":112211,"closeDate":null,"cycle":104,"tier":"Enterprise","contract":"Annual"},{"date":"8/11/2025","source":"Paid Ads","id":"L00098","company":"Tech Partners","industry":"Education","size":"Mid-Market","rep":"Emily Thompson","stage":"Closed-Won","value":42166,"closeDate":"10/21/2025","cycle":71,"tier":"Professional","contract":"Monthly"},{"date":"8/13/2025","source":"Direct","id":"L00113","company":"Omega Partners","industry":"Financial Services","size":"SMB","rep":"Michael Rodriguez","stage":"Closed-Lost","value":14068,"closeDate":null,"cycle":32,"tier":"Starter","contract":"Multi-year"},{"date":"8/17/2025","source":"Content Marketing","id":"L00002","company":"Omega Technologies","industry":"Healthcare","size":"SMB","rep":"James Martinez","stage":"MQL","value":24305,"closeDate":null,"cycle":40,"tier":"Starter","contract":"Monthly"},{"date":"8/17/2025","source":"Content Marketing","id":"L00042","company":"CloudAnalytics","industry":"Financial Services","size":"Mid-Market","rep":"Sarah Chen","stage":"Opportunity","value":62137,"closeDate":null,"cycle":59,"tier":"Professional","contract":"Multi-year"},{"date":"8/18/2025","source":"Paid Ads","id":"L00109","company":"Vertex Solutions","industry":"Financial Services","size":"SMB","rep":"Amanda Foster","stage":"SQL","value":16767,"closeDate":null,"cycle":23,"tier":"Starter","contract":"Monthly"},{"date":"8/25/2025","source":"Paid Ads","id":"L00120","company":"Quantum Technologies","industry":"Real Estate","size":"SMB","rep":"Amanda Foster","stage":"Closed-Lost","value":21269,"closeDate":null,"cycle":29,"tier":"Professional","contract":"Annual"},{"date":"8/28/2025","source":"Organic","id":"L00214","company":"GlobalSystems","industry":"Manufacturing","size":"Mid-Market","rep":"Jessica Williams","stage":"Closed-Lost","value":61867,"closeDate":null,"cycle":56,"tier":"Professional","contract":"Multi-year"}],"months":[{"month":"2024-01","visits":9500,"mqls":285,"sqls":74,"opps":16,"won":5,"mqlSql":0.2596491228070175,"sqlOpp":0.21621621621621623,"oppWon":0.3125,"adSpend":32000,"cac":6400},{"month":"2024-02","visits":10200,"mqls":306,"sqls":80,"opps":18,"won":6,"mqlSql":0.26143790849673204,"sqlOpp":0.225,"oppWon":0.3333333333333333,"adSpend":34500,"cac":5750},{"month":"2024-03","visits":11800,"mqls":354,"sqls":92,"opps":21,"won":7,"mqlSql":0.2598870056497175,"sqlOpp":0.22826086956521738,"oppWon":0.3333333333333333,"adSpend":38000,"cac":5428.571428571428},{"month":"2024-04","visits":12500,"mqls":375,"sqls":101,"opps":23,"won":8,"mqlSql":0.2693333333333333,"sqlOpp":0.22772277227722773,"oppWon":0.34782608695652173,"adSpend":40000,"cac":5000},{"month":"2024-05","visits":13200,"mqls":396,"sqls":107,"opps":25,"won":9,"mqlSql":0.2702020202020202,"sqlOpp":0.2336448598130841,"oppWon":0.36,"adSpend":42500,"cac":4722.222222222223},{"month":"2024-06","visits":14100,"mqls":423,"sqls":116,"opps":27,"won":10,"mqlSql":0.27423167848699764,"sqlOpp":0.23275862068965517,"oppWon":0.37037037037037035,"adSpend":44000,"cac":4400},{"month":"2024-07","visits":13500,"mqls":405,"sqls":110,"opps":25,"won":8,"mqlSql":0.2716049382716049,"sqlOpp":0.22727272727272727,"oppWon":0.32,"adSpend":41000,"cac":5125},{"month":"2024-08","visits":13800,"mqls":414,"sqls":113,"opps":26,"won":9,"mqlSql":0.27294685990338163,"sqlOpp":0.23008849557522124,"oppWon":0.34615384615384615,"adSpend":42000,"cac":4666.666666666667},{"month":"2024-09","visits":15600,"mqls":468,"sqls":131,"opps":31,"won":11,"mqlSql":0.2799145299145299,"sqlOpp":0.2366412213740458,"oppWon":0.3548387096774194,"adSpend":46000,"cac":4181.818181818182},{"month":"2024-10","visits":17800,"mqls":534,"sqls":150,"opps":36,"won":13,"mqlSql":0.2808988764044944,"sqlOpp":0.24,"oppWon":0.3611111111111111,"adSpend":50000,"cac":3846.153846153846},{"month":"2024-11","visits":19200,"mqls":576,"sqls":163,"opps":39,"won":15,"mqlSql":0.2829861111111111,"sqlOpp":0.2392638036809816,"oppWon":0.38461538461538464,"adSpend":54000,"cac":3600},{"month":"2024-12","visits":21500,"mqls":645,"sqls":184,"opps":44,"won":17,"mqlSql":0.28527131782945736,"sqlOpp":0.2391304347826087,"oppWon":0.38636363636363635,"adSpend":58000,"cac":3411.764705882353},{"month":"2025-01","visits":18500,"mqls":555,"sqls":156,"opps":37,"won":13,"mqlSql":0.2810810810810811,"sqlOpp":0.23717948717948717,"oppWon":0.35135135135135137,"adSpend":52000,"cac":4000},{"month":"2025-02","visits":19200,"mqls":576,"sqls":163,"opps":39,"won":14,"mqlSql":0.2829861111111111,"sqlOpp":0.2392638036809816,"oppWon":0.358974358974359,"adSpend":53500,"cac":3821.4285714285716},{"month":"2025-03","visits":20500,"mqls":615,"sqls":175,"opps":42,"won":16,"mqlSql":0.2845528455284553,"sqlOpp":0.24,"oppWon":0.38095238095238093,"adSpend":55000,"cac":3437.5},{"month":"2025-04","visits":21800,"mqls":654,"sqls":187,"opps":45,"won":17,"mqlSql":0.28593272171253825,"sqlOpp":0.24064171122994651,"oppWon":0.37777777777777777,"adSpend":56500,"cac":3323.529411764706},{"month":"2025-05","visits":22600,"mqls":678,"sqls":195,"opps":47,"won":18,"mqlSql":0.28761061946902655,"sqlOpp":0.24102564102564103,"oppWon":0.3829787234042553,"adSpend":58000,"cac":3222.222222222222},{"month":"2025-06","visits":23500,"mqls":705,"sqls":203,"opps":49,"won":19,"mqlSql":0.28794326241134754,"sqlOpp":0.2413793103448276,"oppWon":0.3877551020408163,"adSpend":59500,"cac":3131.5789473684213},{"month":"2025-07","visits":22100,"mqls":663,"sqls":191,"opps":46,"won":17,"mqlSql":0.28808446455505277,"sqlOpp":0.24083769633507854,"oppWon":0.3695652173913043,"adSpend":57000,"cac":3352.9411764705883},{"month":"2025-08","visits":22800,"mqls":684,"sqls":197,"opps":47,"won":18,"mqlSql":0.2880116959064328,"sqlOpp":0.23857868020304568,"oppWon":0.3829787234042553,"adSpend":58500,"cac":3250}]};
+
+/* ============================== helpers ============================== */
+const $ = (s, r) => (r || document).querySelector(s);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SERIES = () => [css('--s1'), css('--s2'), css('--s3'), css('--s4'), css('--s5')];
+
+const fmtM = n => {
+  const a = Math.abs(n);
+  if (a >= 1e6) return '$' + (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  if (a >= 1e3) return '$' + Math.round(n / 1e3) + 'K';
+  return '$' + Math.round(n);
+};
+const fmtFull = n => '$' + Math.round(n).toLocaleString('en-US');
+const fmtP = (n, d = 1) => (n * 100).toFixed(d) + '%';
+const fmtN = n => Math.round(n).toLocaleString('en-US');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const monthLabel = m => { const [y, mo] = m.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+mo-1] + ' ' + y.slice(2); };
+
+const ICON = {
+  check: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.5 4.7 9 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  warn: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1.5 11 10.5H1L6 1.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 5v2.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="6" cy="9.1" r=".8" fill="currentColor"/></svg>',
+  flame: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1c.4 2-2.6 3.2-2.6 6a2.6 2.6 0 0 0 5.2 0C8.6 4.6 7.4 3.4 6 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+};
+const navIcon = d => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">${d}</svg>`;
+const NAV_ICONS = {
+  dashboard: navIcon('<rect x="1.5" y="1.5" width="5.5" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1.5" width="5.5" height="4" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="7.5" width="5.5" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1.5" y="10.5" width="5.5" height="4" rx="1.5" stroke="currentColor" stroke-width="1.5"/>'),
+  pipeline: navIcon('<path d="M2 3h12M4 8h8M6.5 13h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'),
+  marketing: navIcon('<path d="M2 10 6 6l3 3 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 4H14v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13.5h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'),
+  analytics: navIcon('<path d="M3 13V8M8 13V3M13 13v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'),
+  forecast: navIcon('<circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.5V8l2.4 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'),
+  compare: navIcon('<path d="M5 2.5v11M11 2.5v11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.5 5 5 2.5 7.5 5M8.5 11l2.5 2.5L13.5 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'),
+  media: navIcon('<circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.8V8l4.4 4.4" stroke="currentColor" stroke-width="1.5"/>'),
+  reports: navIcon('<rect x="2.5" y="1.5" width="11" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 5h5M5.5 8h5M5.5 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'),
+};
+
+/* tooltip */
+const tip = $('#tip');
+function showTip(evt, html) {
+  tip.innerHTML = html; tip.style.display = 'block';
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = evt.clientX + pad, y = evt.clientY + pad;
+  if (x + w > innerWidth - 8) x = evt.clientX - w - pad;
+  if (y + h > innerHeight - 8) y = evt.clientY - h - pad;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideTip() { tip.style.display = 'none'; }
+document.addEventListener('scroll', hideTip, true);
+
+/* ============================== chart builders ============================== */
+function lineChart(opts) {
+  // opts: { series: [{name, color, values, fill}], labels, h, fmt, id }
+  const W = 640, H = opts.h || 220, padL = 46, padR = 10, padT = 12, padB = 26;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const all = opts.series.flatMap(s => s.values);
+  const max = Math.max(...all) * 1.08, min = 0;
+  const n = opts.labels.length;
+  const X = i => padL + (n === 1 ? iw / 2 : i * iw / (n - 1));
+  const Y = v => padT + ih - (v - min) / (max - min) * ih;
+  const fmt = opts.fmt || fmtN;
+  const ticks = 4;
+  let g = '';
+  for (let t = 0; t <= ticks; t++) {
+    const v = min + (max - min) * t / ticks, y = Y(v);
+    g += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${padL - 7}" y="${y + 3.5}" text-anchor="end" font-size="10" fill="var(--ink-3)">${fmt(v)}</text>`;
+  }
+  const step = Math.max(1, Math.ceil(n / 8));
+  opts.labels.forEach((l, i) => {
+    if (i % step === 0 || i === n - 1)
+      g += `<text x="${X(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${l}</text>`;
+  });
+  let paths = '';
+  opts.series.forEach(s => {
+    const pts = s.values.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
+    if (s.fill) {
+      paths += `<path d="M${pts.join(' L')} L${X(n - 1)},${Y(0)} L${X(0)},${Y(0)} Z" fill="${s.color}" opacity="0.13"/>`;
+    }
+    paths += `<path d="M${pts.join(' L')}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const li = s.values.length - 1;
+    paths += `<circle cx="${X(li)}" cy="${Y(s.values[li])}" r="3.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`;
+  });
+  const id = opts.id;
+  const svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.aria || 'line chart')}" data-line="${id}">
+    ${g}${paths}
+    <line data-cross x1="0" y1="${padT}" x2="0" y2="${padT + ih}" stroke="var(--baseline)" stroke-width="1" style="display:none"/>
+    <rect data-hit x="${padL}" y="${padT}" width="${iw}" height="${ih}" fill="transparent"/>
+  </svg>`;
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`svg[data-line="${id}"]`); if (!el) return;
+    const hit = el.querySelector('[data-hit]'), cross = el.querySelector('[data-cross]');
+    hit.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const sx = W / r.width;
+      const px = (e.clientX - r.left) * sx;
+      let i = Math.round((px - padL) / (iw / (n - 1)));
+      i = Math.max(0, Math.min(n - 1, i));
+      cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i));
+      cross.style.display = '';
+      const rows = opts.series.map(s =>
+        `<div><span style="color:${s.color}">●</span> ${esc(s.name)}: <b>${fmt(s.values[i])}</b></div>`).join('');
+      showTip(e, `<div style="opacity:.75;margin-bottom:2px">${opts.labels[i]}</div>${rows}`);
+    });
+    hit.addEventListener('mouseleave', () => { cross.style.display = 'none'; hideTip(); });
+  });
+  return `<div class="chart">${svg}</div>`;
+}
+
+function barChart(opts) {
+  // opts: { labels, values, color | colors, h, fmt, id, aria, tipRows }
+  const W = 640, H = opts.h || 220, padL = 46, padR = 10, padT = 12, padB = 26;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const max = Math.max(...opts.values) * 1.08;
+  const n = opts.values.length;
+  const slot = iw / n, bw = Math.min(slot * 0.6, 46);
+  const fmt = opts.fmt || fmtN;
+  let g = '';
+  for (let t = 0; t <= 4; t++) {
+    const v = max * t / 4, y = padT + ih - v / max * ih;
+    g += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${padL - 7}" y="${y + 3.5}" text-anchor="end" font-size="10" fill="var(--ink-3)">${fmt(v)}</text>`;
+  }
+  const step = Math.max(1, Math.ceil(n / 10));
+  let bars = '';
+  opts.values.forEach((v, i) => {
+    const x = padL + i * slot + (slot - bw) / 2;
+    const h = Math.max(v / max * ih, 2), y = padT + ih - h;
+    const c = opts.colors ? opts.colors[i] : (opts.color || 'var(--s1)');
+    bars += `<path data-i="${i}" d="M${x},${y + 4} q0,-4 4,-4 h${bw - 8} q4,0 4,4 V${padT + ih} H${x} Z" fill="${c}"/>`;
+    if (i % step === 0 || i === n - 1)
+      g += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${opts.labels[i]}</text>`;
+  });
+  const id = opts.id;
+  const svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.aria || 'bar chart')}" data-bar="${id}">${g}${bars}</svg>`;
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`svg[data-bar="${id}"]`); if (!el) return;
+    el.querySelectorAll('path[data-i]').forEach(p => {
+      const i = +p.dataset.i;
+      p.addEventListener('mousemove', e => showTip(e,
+        opts.tipRows ? opts.tipRows(i) :
+        `<div style="opacity:.75">${opts.labels[i]}</div><b>${fmt(opts.values[i])}</b>`));
+      p.addEventListener('mouseleave', hideTip);
+    });
+  });
+  return `<div class="chart">${svg}</div>`;
+}
+
+function hbarChart(opts) {
+  // horizontal bars: { rows: [{label, value, right, color}], fmt, id }
+  const max = Math.max(...opts.rows.map(r => r.value));
+  return `<div class="funnel">` + opts.rows.map((r, i) => `
+    <div class="f-row" data-hb="${opts.id}:${i}">
+      <div class="name">${esc(r.label)}</div>
+      <div class="f-bar-track"><div class="f-bar" style="width:${Math.max(r.value / max * 100, 1.2)}%;background:${r.color || 'var(--s1)'}"></div></div>
+      <div class="val">${r.right}</div>
+    </div>`).join('') + `</div>`;
+}
+
+function donutChart(opts) {
+  // { items: [{label, value, color}], id, fmt }
+  const total = opts.items.reduce((a, b) => a + b.value, 0);
+  const R = 70, r = 44, CX = 90, CY = 90;
+  let a0 = -Math.PI / 2, segs = '';
+  opts.items.forEach((it, idx) => {
+    const a1 = a0 + it.value / total * Math.PI * 2;
+    const large = a1 - a0 > Math.PI ? 1 : 0;
+    const gap = 0.018;
+    const s0 = a0 + gap, s1 = a1 - gap;
+    const p = (a, rad) => `${(CX + Math.cos(a) * rad).toFixed(1)},${(CY + Math.sin(a) * rad).toFixed(1)}`;
+    segs += `<path data-i="${idx}" d="M${p(s0, R)} A${R},${R} 0 ${large} 1 ${p(s1, R)} L${p(s1, r)} A${r},${r} 0 ${large} 0 ${p(s0, r)} Z" fill="${it.color}"/>`;
+    a0 = a1;
+  });
+  const fmt = opts.fmt || fmtM;
+  const svg = `<svg viewBox="0 0 180 180" style="max-width:210px;margin:0 auto" role="img" aria-label="${esc(opts.aria || 'donut chart')}" data-donut="${opts.id}">
+    ${segs}
+    <text x="${CX}" y="${CY - 4}" text-anchor="middle" font-size="17" font-weight="700" fill="var(--ink)">${fmt(total)}</text>
+    <text x="${CX}" y="${CY + 14}" text-anchor="middle" font-size="9.5" fill="var(--ink-3)">TOTAL / MO</text>
+  </svg>`;
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`svg[data-donut="${opts.id}"]`); if (!el) return;
+    el.querySelectorAll('path[data-i]').forEach(p => {
+      const it = opts.items[+p.dataset.i];
+      p.addEventListener('mousemove', e => showTip(e,
+        `<div style="opacity:.75">${esc(it.label)}</div><b>${fmt(it.value)}</b> · ${fmtP(it.value / total, 0)} of budget`));
+      p.addEventListener('mouseleave', hideTip);
+    });
+  });
+  return `<div class="chart">${svg}</div>`;
+}
+
+function legend(items) {
+  return `<div class="legend">` + items.map(i =>
+    `<span class="key"><span class="swatch" style="background:${i.color}"></span>${esc(i.label)}</span>`).join('') + `</div>`;
+}
+
+/* ============================== derived data ============================== */
+const L = DB.leads, M = DB.months;
+const won = L.filter(l => l.stage === 'Closed-Won');
+const wonRevenue = won.reduce((a, l) => a + l.value, 0);
+const avgDeal = wonRevenue / won.length;
+const MRR = 246341.6, ARR = 2956099.2, CAC = 4203.57, LTV = 145980.21, LTVCAC = 34.7, PAYBACK = 0.83;
+const PIPELINE_VALUE = 1554081, FORECAST6 = 8140221, WIN_RATE = 0.324, AVG_CYCLE = 72.2;
+const TARGET_MONTHLY = 1500000, EXPECTED_MONTHLY = 760314, GAP = 739686;
+const stagesOrder = ['MQL', 'SQL', 'Opportunity', 'Closed-Won', 'Closed-Lost'];
+const stageCount = s => L.filter(l => l.stage === s).length;
+const stageValue = s => L.filter(l => l.stage === s).reduce((a, l) => a + l.value, 0);
+
+const channelRank = [
+  { rank: 1, ch: 'Events', wr: 0.4667, deal: 52173, rev: 365208 },
+  { rank: 2, ch: 'Organic', wr: 0.3247, deal: 55321, rev: 1383025 },
+  { rank: 3, ch: 'Direct', wr: 0.3182, deal: 65441, rev: 458084 },
+  { rank: 4, ch: 'Referral', wr: 0.3023, deal: 95642, rev: 1243343 },
+  { rank: 5, ch: 'Paid Ads', wr: 0.3115, deal: 52063, rev: 989197 },
+  { rank: 6, ch: 'Content Marketing', wr: 0.3125, deal: 48798, rev: 487975 },
+];
+const reps = [
+  { name: 'Emily Thompson', leads: 33, won: 15, wr: 0.4545, deal: 35526 },
+  { name: 'Robert Kim', leads: 34, won: 15, wr: 0.4412, deal: 80815 },
+  { name: 'Amanda Foster', leads: 36, won: 13, wr: 0.3611, deal: 50634 },
+  { name: 'Sarah Chen', leads: 25, won: 9, wr: 0.36, deal: 41534 },
+  { name: 'Michael Rodriguez', leads: 39, won: 13, wr: 0.3333, deal: 83636 },
+  { name: 'James Martinez', leads: 35, won: 8, wr: 0.2286, deal: 70210 },
+  { name: 'Jessica Williams', leads: 24, won: 5, wr: 0.2083, deal: 76389 },
+  { name: 'David Park', leads: 24, won: 3, wr: 0.125, deal: 39594 },
+];
+const segments = [
+  { seg: 'SMB', deal: 18475, count: 97, cycle: 32.7 },
+  { seg: 'Mid-Market', deal: 52281, count: 91, cycle: 69.0 },
+  { seg: 'Enterprise', deal: 152653, count: 62, cycle: 137.7 },
+];
+const forecast = [
+  { m: 'Sep 25', deals: 19, size: 60825, rev: 1155677, conf: 'Medium' },
+  { m: 'Oct 25', deals: 21, size: 62042, rev: 1302873, conf: 'High' },
+  { m: 'Nov 25', deals: 23, size: 62650, rev: 1440946, conf: 'High' },
+  { m: 'Dec 25', deals: 25, size: 63866, rev: 1596659, conf: 'High' },
+  { m: 'Jan 26', deals: 20, size: 63866, rev: 1277327, conf: 'Medium' },
+  { m: 'Feb 26', deals: 21, size: 65083, rev: 1366740, conf: 'Medium' },
+];
+const monthlyRevenue = [
+  ['Jan 24',304125],['Feb 24',364951],['Mar 24',425776],['Apr 24',486601],['May 24',547426],['Jun 24',608251],
+  ['Jul 24',486601],['Aug 24',547426],['Sep 24',669076],['Oct 24',790726],['Nov 24',912376],['Dec 24',1034026],
+  ['Jan 25',790726],['Feb 25',851551],['Mar 25',973201],['Apr 25',1034026],['May 25',1094852],['Jun 25',1155677],
+  ['Jul 25',1034026],['Aug 25',1094852],
+];
+const benchmarks = [
+  { m: 'MQL → SQL conversion', ours: '27.8%', bench: '25.0%', ok: true },
+  { m: 'SQL → Opportunity conversion', ours: '23.5%', bench: '22.5%', ok: true },
+  { m: 'Opportunity → Won conversion', ours: '36.0%', bench: '35.0%', ok: true },
+  { m: 'Overall win rate', ours: '32.4%', bench: '30.0%', ok: true },
+  { m: 'CAC', ours: '$4,204', bench: '$5,000', ok: true },
+  { m: 'LTV : CAC ratio', ours: '34.7 : 1', bench: '3 : 1', ok: true },
+  { m: 'Sales cycle (days)', ours: '72', bench: '90', ok: true },
+];
+const mediaPlan = [
+  { p: 'Meta (FB/IG)', pct: 0.30, budget: 7500, daily: 246.71, cpl: 72.46, leads: 103.5, note: '1 Sales CBO + 1 remarketing, broad targeting' },
+  { p: 'Google Ads', pct: 0.25, budget: 6250, daily: 205.59, cpl: 128.44, leads: 48.7, note: 'Intent-first Search + PMax consolidated' },
+  { p: 'LinkedIn Ads', pct: 0.20, budget: 5000, daily: 164.47, cpl: 80.65, leads: 62.0, note: 'Lead Gen Forms with qualifying questions' },
+  { p: 'TikTok Ads', pct: 0.15, budget: 3750, daily: 123.36, cpl: 47.86, leads: 78.3, note: 'Instant Forms + Smart+ automation' },
+  { p: 'Snapchat Ads', pct: 0.10, budget: 2500, daily: 82.24, cpl: 36.36, leads: 68.8, note: 'Lowest-CPL testbed, capped at 10%' },
+];
+const scenarios = {
+  Conservative: { f: 0.8, leads: 289.0, day: 9.5, status: '≈ Within 10% of target' },
+  'Base case': { f: 1.0, leads: 361.3, day: 11.9, status: 'On target' },
+  Optimistic: { f: 1.2, leads: 433.5, day: 14.3, status: 'On target' },
+};
+const reportRows = [
+  { m: 'Total spend', a: '$25,000', plan: '$25,000', ok: true },
+  { m: 'Total leads', a: '362', plan: '361', ok: true },
+  { m: 'Leads per day', a: '11.9', plan: '10.0', ok: true },
+  { m: 'Blended CPL', a: '$69.06', plan: '$69.20', ok: true },
+  { m: 'MQLs (qualified leads)', a: '91', plan: '90', ok: true },
+  { m: 'Qualified rate (lead → MQL)', a: '25.1%', plan: '25.0%', ok: true },
+  { m: 'SQLs', a: '25', plan: '25', ok: true },
+  { m: 'Closed-won deals', a: '2.1', plan: '2.1', ok: true },
+  { m: 'New bookings revenue', a: '$127,733', plan: '$128,982', ok: true },
+  { m: 'MER (revenue ÷ spend)', a: '5.11×', plan: '5.16×', ok: true },
+  { m: 'Paid CAC', a: '$11,905', plan: '$11,789', ok: true },
+];
+const platformReport = [
+  { p: 'Meta', spend: 7500, leads: 104, cpl: 72.12, mqls: 26, qr: 0.25, cpm: 288.46 },
+  { p: 'Google Ads', spend: 6250, leads: 49, cpl: 127.55, mqls: 12, qr: 0.2449, cpm: 520.83 },
+  { p: 'LinkedIn', spend: 5000, leads: 62, cpl: 80.65, mqls: 16, qr: 0.2581, cpm: 312.50 },
+  { p: 'TikTok', spend: 3750, leads: 78, cpl: 48.08, mqls: 20, qr: 0.2564, cpm: 187.50 },
+  { p: 'Snapchat', spend: 2500, leads: 69, cpl: 36.23, mqls: 17, qr: 0.2464, cpm: 147.06 },
+];
+
+const atRisk = L.filter(l => l.stage === 'Opportunity' && l.cycle > 120);
+
+/* ============================== views ============================== */
+const MODULES = [
+  { id: 'dashboard', name: 'Command Center', icon: 'dashboard', crumb: 'Executive summary · KPI dashboard' },
+  { id: 'pipeline', name: 'Pipeline', icon: 'pipeline', crumb: '250 leads · raw sales data' },
+  { id: 'marketing', name: 'Marketing', icon: 'marketing', crumb: '20 months of funnel metrics' },
+  { id: 'analytics', name: 'Analytics', icon: 'analytics', crumb: 'Statistical analysis' },
+  { id: 'forecast', name: 'Forecast', icon: 'forecast', crumb: 'Predictions · Sep 2025 – Feb 2026' },
+  { id: 'compare', name: 'Compare', icon: 'compare', crumb: 'Growth · benchmarks · channels' },
+  { id: 'media', name: 'Media Plan', icon: 'media', crumb: '$25K/mo across 5 platforms' },
+  { id: 'reports', name: 'Reports', icon: 'reports', crumb: 'Monthly performance report' },
+];
+
+function pillOk(txt) { return `<span class="pill good">${ICON.check}${esc(txt)}</span>`; }
+function pillWarn(txt) { return `<span class="pill warn">${ICON.warn}${esc(txt)}</span>`; }
+function pillCrit(txt) { return `<span class="pill crit">${ICON.warn}${esc(txt)}</span>`; }
+
+function statTile(label, num, deltaHtml, progress) {
+  return `<div class="card stat">
+    <div class="label">${esc(label)}</div>
+    <div class="num">${num}</div>
+    <div class="delta">${deltaHtml || ''}</div>
+    ${progress || ''}
+  </div>`;
+}
+
+/* ---------- Command Center ---------- */
+function viewDashboard() {
+  const revPct = Math.min(MRR / TARGET_MONTHLY, 1);
+  const seq = ['var(--seq-250)', 'var(--seq-350)', 'var(--seq-450)', 'var(--seq-550)', 'var(--seq-600)'];
+  const fun = [
+    { n: 'Website visits', v: 17185, s: '3.0% → MQL' },
+    { n: 'MQLs', v: 515.6, s: '27.8% → SQL' },
+    { n: 'SQLs', v: 144.4, s: '23.6% → Opp' },
+    { n: 'Opportunities', v: 34.2, s: '36.6% → Won' },
+    { n: 'Closed-won', v: 12.5, s: '' },
+  ];
+  const maxLog = Math.log10(fun[0].v);
+  const funnelHtml = fun.map((f, i) => `
+    <div class="f-row">
+      <div class="name">${f.n}</div>
+      <div class="f-bar-track"><div class="f-bar" style="width:${(Math.log10(Math.max(f.v, 1.5)) / maxLog * 100).toFixed(1)}%;background:${seq[i]}"></div></div>
+      <div class="val">${f.v >= 1000 ? fmtN(f.v) : f.v.toFixed(1).replace('.0','')} / mo</div>
+    </div>${f.s ? `<div class="f-conv">↳ ${f.s}</div>` : ''}`).join('');
+
+  return `
+  <div class="view-head">
+    <h2>Good morning. Revenue is compounding.</h2>
+    <p>All-time closed-won revenue is <strong>${fmtFull(wonRevenue)}</strong> across ${won.length} deals — and the pipeline holds ${fmtM(PIPELINE_VALUE)} more that's expected to close. Bar widths in the funnel are log-scaled so every stage stays visible.</p>
+  </div>
+  <div class="grid cols-4">
+    ${statTile('Closed-won revenue', fmtM(wonRevenue), `<span class="up">↑ Growing</span> · ${won.length} deals all-time`)}
+    ${statTile('MRR', fmtM(MRR), `ARR run-rate <b>${fmtM(ARR)}</b>`)}
+    ${statTile('Avg deal size', fmtM(avgDeal), `${pillOk('Above $50K target')}`)}
+    ${statTile('Pipeline value', fmtM(PIPELINE_VALUE), `${stageCount('Opportunity')} open opportunities`)}
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-4">
+    ${statTile('CAC', fmtFull(CAC), pillOk('Under $5,000 benchmark'))}
+    ${statTile('LTV : CAC', LTVCAC.toFixed(1) + ' : 1', pillOk('Target is 3 : 1 — excellent'))}
+    ${statTile('Payback period', PAYBACK.toFixed(1) + ' mo', pillOk('Target < 12 months'))}
+    ${statTile('Win rate', fmtP(WIN_RATE), pillOk('Above 30% target'))}
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Conversion funnel</h3>
+      <p class="sub">Average monthly volumes, Jan 2024 – Aug 2025</p>
+      ${funnelHtml}
+    </div>
+    <div class="card">
+      <h3>Progress to $1.5M monthly revenue</h3>
+      <p class="sub">The number the whole team is walking toward</p>
+      <div class="stat">
+        <div class="num">${fmtM(MRR)} <span style="font-size:14px;color:var(--ink-3);font-weight:500">of ${fmtM(TARGET_MONTHLY)}</span></div>
+      </div>
+      <div class="progress" style="height:10px"><span class="w" style="width:${(revPct * 100).toFixed(1)}%"></span></div>
+      <p class="note" style="margin-top:8px">${fmtP(revPct, 0)} of target reached</p>
+      <div style="height:12px"></div>
+      <div class="callout">
+        <div class="t">${pillCrit('Gap to target')}</div>
+        <p>Leaving <strong>${fmtM(GAP)}</strong> per month on the table at the current run-rate. The model says the fix is lead volume + conversion optimization — see <strong>Forecast</strong> for the math.</p>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Top performing channels</h3>
+      <p class="sub">Win rate by lead source — where deals actually close</p>
+      ${hbarChart({ id: 'ch-src', rows: channelRank.slice(0, 5).map(c => ({ label: c.ch, value: c.wr, right: fmtP(c.wr) + ' win', color: 'var(--s1)' })) })}
+      <p class="axis-note">Events converts 1.4× better than any paid channel. Avg deal: Referral leads run ${fmtM(95642)} — the largest of any source.</p>
+    </div>
+    <div class="card">
+      <h3>Lead velocity</h3>
+      <p class="sub">MQLs and SQLs per month, growing +8% MoM</p>
+      ${legend([{ label: 'MQLs', color: css('--s1') }, { label: 'SQLs', color: css('--s2') }])}
+      ${lineChart({
+        id: 'velocity', aria: 'MQLs and SQLs per month',
+        labels: M.map(m => monthLabel(m.month)),
+        series: [
+          { name: 'MQLs', color: 'var(--s1)', values: M.map(m => m.mqls), fill: true },
+          { name: 'SQLs', color: 'var(--s2)', values: M.map(m => m.sqls) },
+        ],
+      })}
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Critical KPI scorecard</h3>
+    <p class="sub">Current vs target — the four numbers a board asks about first</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>KPI</th><th class="num">Current</th><th class="num">Target</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Monthly revenue</td><td class="num">${fmtFull(MRR)}</td><td class="num">${fmtFull(TARGET_MONTHLY)}</td><td>${pillWarn('Below target')}</td></tr>
+        <tr><td>CAC</td><td class="num">${fmtFull(CAC)}</td><td class="num">&lt; $5,000</td><td>${pillOk('Good')}</td></tr>
+        <tr><td>LTV : CAC ratio</td><td class="num">34.7 : 1</td><td class="num">3 : 1</td><td>${pillOk('Excellent')}</td></tr>
+        <tr><td>Win rate</td><td class="num">32.4%</td><td class="num">30.0%</td><td>${pillOk('On track')}</td></tr>
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+/* ---------- Pipeline ---------- */
+const pipeState = { stage: 'All', source: 'All', rep: 'All', tier: 'All', q: '', sort: 'date', dir: -1 };
+function uniq(k) { return [...new Set(L.map(l => l[k]))].sort(); }
+
+function viewPipeline() {
+  const stageColors = { MQL: 'var(--seq-250)', SQL: 'var(--seq-350)', Opportunity: 'var(--seq-450)', 'Closed-Won': 'var(--good)', 'Closed-Lost': 'var(--baseline)' };
+  const stagesHtml = stagesOrder.map(s => `
+    <div class="stage-card" style="border-top-color:${stageColors[s]}">
+      <div class="t">${s}</div>
+      <div class="n">${stageCount(s)}</div>
+      <div class="v">${fmtM(stageValue(s))} ARR</div>
+    </div>`).join('');
+  const sel = (id, label, opts) => `<select id="${id}" aria-label="${label}"><option>All</option>${opts.map(o => `<option>${esc(o)}</option>`).join('')}</select>`;
+  return `
+  <div class="view-head">
+    <h2>Pipeline</h2>
+    <p>Every one of the ${L.length} leads from the raw sales data — filter, search, sort, and click any row for the full record. ${atRisk.length ? `<strong>${atRisk.length} opportunities</strong> have been open more than 120 days and deserve a call this week.` : ''}</p>
+  </div>
+  <div class="stages">${stagesHtml}</div>
+  <div class="filters">
+    <input type="search" id="pf-q" placeholder="Search company, ID, industry…" aria-label="Search leads">
+    ${sel('pf-stage', 'Filter by stage', stagesOrder)}
+    ${sel('pf-source', 'Filter by source', uniq('source'))}
+    ${sel('pf-rep', 'Filter by rep', uniq('rep'))}
+    ${sel('pf-tier', 'Filter by tier', ['Starter', 'Professional', 'Enterprise'])}
+  </div>
+  <div class="card" style="padding:6px 6px 2px">
+    <div class="tbl-wrap" style="max-height:560px;overflow-y:auto">
+      <table id="pipe-table">
+        <thead><tr>
+          <th data-s="date">Date ↕</th><th>Lead</th><th>Company</th><th>Industry</th><th>Size</th>
+          <th>Source</th><th>Rep</th><th>Stage</th><th class="num" data-s="value">ARR ↕</th><th class="num" data-s="cycle">Cycle ↕</th>
+        </tr></thead>
+        <tbody id="pipe-body"></tbody>
+      </table>
+    </div>
+    <p class="note" id="pipe-count" style="padding:8px 12px"></p>
+  </div>`;
+}
+
+function stagePill(s) {
+  if (s === 'Closed-Won') return `<span class="pill good">${ICON.check}Won</span>`;
+  if (s === 'Closed-Lost') return `<span class="pill" style="color:var(--ink-3);background:var(--grid)">Lost</span>`;
+  if (s === 'Opportunity') return `<span class="pill info">Opportunity</span>`;
+  return `<span class="pill" style="color:var(--ink-2);background:var(--accent-soft)">${esc(s)}</span>`;
+}
+
+function renderPipeRows() {
+  const st = pipeState;
+  let rows = L.filter(l =>
+    (st.stage === 'All' || l.stage === st.stage) &&
+    (st.source === 'All' || l.source === st.source) &&
+    (st.rep === 'All' || l.rep === st.rep) &&
+    (st.tier === 'All' || l.tier === st.tier) &&
+    (!st.q || (l.company + ' ' + l.id + ' ' + l.industry).toLowerCase().includes(st.q))
+  );
+  rows.sort((a, b) => {
+    const k = st.sort;
+    const va = k === 'date' ? a.date : a[k], vb = k === 'date' ? b.date : b[k];
+    return (va > vb ? 1 : va < vb ? -1 : 0) * st.dir;
+  });
+  const body = $('#pipe-body'); if (!body) return;
+  body.innerHTML = rows.slice(0, 250).map((l, i) => `
+    <tr class="clickable" tabindex="0" data-lead="${esc(l.id)}" role="button" aria-label="Open ${esc(l.company)}">
+      <td>${l.date}</td><td class="rank">${esc(l.id)}</td><td><strong>${esc(l.company)}</strong></td>
+      <td>${esc(l.industry)}</td><td>${esc(l.size)}</td><td>${esc(l.source)}</td><td>${esc(l.rep)}</td>
+      <td>${stagePill(l.stage)}${l.stage === 'Opportunity' && l.cycle > 120 ? ` <span class="pill crit">${ICON.flame}Stale</span>` : ''}</td>
+      <td class="num">${fmtFull(l.value)}</td><td class="num">${l.cycle}d</td>
+    </tr>`).join('');
+  $('#pipe-count').textContent = rows.length + ' of ' + L.length + ' leads · ' + fmtM(rows.reduce((a, l) => a + l.value, 0)) + ' total ARR in view';
+  body.querySelectorAll('tr[data-lead]').forEach(tr => {
+    const open = () => openDrawer(tr.dataset.lead);
+    tr.addEventListener('click', open);
+    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  });
+}
+
+function bindPipeline() {
+  const bind = (id, key) => { const el = $('#' + id); if (el) el.addEventListener('change', () => { pipeState[key] = el.value; renderPipeRows(); }); };
+  bind('pf-stage', 'stage'); bind('pf-source', 'source'); bind('pf-rep', 'rep'); bind('pf-tier', 'tier');
+  const q = $('#pf-q'); if (q) q.addEventListener('input', () => { pipeState.q = q.value.trim().toLowerCase(); renderPipeRows(); });
+  document.querySelectorAll('#pipe-table th[data-s]').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.s;
+    if (pipeState.sort === k) pipeState.dir *= -1; else { pipeState.sort = k; pipeState.dir = -1; }
+    renderPipeRows();
+  }));
+  renderPipeRows();
+}
+
+function openDrawer(id) {
+  const l = L.find(x => x.id === id); if (!l) return;
+  const d = $('#drawer');
+  const wonDeal = l.stage === 'Closed-Won';
+  d.innerHTML = `
+    <button class="close" id="drawer-close" aria-label="Close">✕</button>
+    <h3>${esc(l.company)}</h3>
+    <p class="note">${esc(l.id)} · entered ${l.date}</p>
+    <div style="margin:10px 0">${stagePill(l.stage)} ${l.stage === 'Opportunity' && l.cycle > 120 ? `<span class="pill crit">${ICON.flame}${l.cycle} days in cycle — act now</span>` : ''}</div>
+    <div class="card" style="padding:12px 14px;margin:12px 0">
+      <div class="stat"><div class="label">Deal value (ARR)</div><div class="num" style="font-size:23px">${fmtFull(l.value)}</div></div>
+      ${wonDeal ? `<p class="note">Closed ${l.closeDate} after a ${l.cycle}-day cycle</p>` : `<p class="note">${l.cycle} days in cycle · segment average is ${l.size === 'SMB' ? '33' : l.size === 'Mid-Market' ? '69' : '138'} days</p>`}
+    </div>
+    <dl class="kv">
+      <dt>Industry</dt><dd>${esc(l.industry)}</dd>
+      <dt>Company size</dt><dd>${esc(l.size)}</dd>
+      <dt>Lead source</dt><dd>${esc(l.source)}</dd>
+      <dt>Sales rep</dt><dd>${esc(l.rep)}</dd>
+      <dt>Product tier</dt><dd>${esc(l.tier)}</dd>
+      <dt>Contract</dt><dd>${esc(l.contract)}</dd>
+      <dt>Sales cycle</dt><dd>${l.cycle} days</dd>
+      ${l.closeDate ? `<dt>Close date</dt><dd>${l.closeDate}</dd>` : ''}
+    </dl>`;
+  $('#scrim').classList.add('open'); d.classList.add('open');
+  $('#drawer-close').addEventListener('click', closeDrawer);
+  $('#drawer-close').focus();
+}
+function closeDrawer() { $('#scrim').classList.remove('open'); $('#drawer').classList.remove('open'); }
+$('#scrim').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+/* ---------- Marketing ---------- */
+function viewMarketing() {
+  const labels = M.map(m => monthLabel(m.month));
+  return `
+  <div class="view-head">
+    <h2>Marketing engine</h2>
+    <p>Twenty months of funnel telemetry. Traffic compounds at +8% MoM while CAC keeps falling — the efficiency curve every SaaS board wants to see.</p>
+  </div>
+  <div class="grid cols-4">
+    ${statTile('Avg monthly visits', fmtN(17185), '<span class="up">↑ +8% MoM</span>')}
+    ${statTile('Avg monthly MQLs', '516', '<span class="up">↑ Growing</span>')}
+    ${statTile('Avg CAC', fmtFull(CAC), `<span class="up">↓ Improving</span> · from ${fmtFull(6400)} at start`)}
+    ${statTile('Total ad spend', fmtM(972000), '20 months · all channels')}
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Website traffic</h3>
+      <p class="sub">Monthly visits — the top of the machine</p>
+      ${lineChart({ id: 'traffic', aria: 'Website visits per month', labels, fmt: fmtN,
+        series: [{ name: 'Visits', color: 'var(--s1)', values: M.map(m => m.visits), fill: true }] })}
+    </div>
+    <div class="card">
+      <h3>Funnel output</h3>
+      <p class="sub">MQLs, SQLs, and closed-won deals per month</p>
+      ${legend([{ label: 'MQLs', color: css('--s1') }, { label: 'SQLs', color: css('--s2') }, { label: 'Closed-won', color: css('--s3') }])}
+      ${lineChart({ id: 'funout', aria: 'MQLs SQLs and won deals per month', labels,
+        series: [
+          { name: 'MQLs', color: 'var(--s1)', values: M.map(m => m.mqls) },
+          { name: 'SQLs', color: 'var(--s2)', values: M.map(m => m.sqls) },
+          { name: 'Closed-won', color: 'var(--s3)', values: M.map(m => m.won) },
+        ] })}
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Ad spend</h3>
+      <p class="sub">Monthly paid budget</p>
+      ${barChart({ id: 'spend', aria: 'Ad spend per month', labels, fmt: fmtM, values: M.map(m => m.adSpend), color: 'var(--s1)' })}
+    </div>
+    <div class="card">
+      <h3>CAC trend</h3>
+      <p class="sub">Cost to acquire each customer — falling as volume grows</p>
+      ${lineChart({ id: 'cac', aria: 'CAC per month', labels, fmt: fmtM,
+        series: [{ name: 'CAC', color: 'var(--s2)', values: M.map(m => m.cac), fill: true }] })}
+      <p class="axis-note">Same months as the spend chart — kept on separate axes because the scales differ 10×.</p>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Conversion rates over time</h3>
+    <p class="sub">Every stage of the funnel is converting better than it did a year ago</p>
+    ${legend([{ label: 'MQL → SQL', color: css('--s1') }, { label: 'SQL → Opp', color: css('--s2') }, { label: 'Opp → Won', color: css('--s3') }])}
+    ${lineChart({ id: 'convs', aria: 'Conversion rates per month', labels, fmt: v => fmtP(v, 0),
+      series: [
+        { name: 'MQL → SQL', color: 'var(--s1)', values: M.map(m => m.mqlSql) },
+        { name: 'SQL → Opp', color: 'var(--s2)', values: M.map(m => m.sqlOpp) },
+        { name: 'Opp → Won', color: 'var(--s3)', values: M.map(m => m.oppWon) },
+      ] })}
+  </div>`;
+}
+
+/* ---------- Analytics ---------- */
+function viewAnalytics() {
+  return `
+  <div class="view-head">
+    <h2>Analytics</h2>
+    <p>Who buys, who sells, and how long it takes. One number worth memorizing: deal size and sales cycle correlate at <strong>0.85</strong> — big deals take time, and that's structural, not a rep problem.</p>
+  </div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Average deal size by segment</h3>
+      <p class="sub">Enterprise deals are 8.3× SMB — but take 4.2× longer to close</p>
+      ${hbarChart({ id: 'seg', rows: segments.map(s => ({ label: s.seg, value: s.deal, right: fmtM(s.deal), color: 'var(--s1)' })) })}
+      <div class="tbl-wrap" style="margin-top:14px"><table>
+        <thead><tr><th>Segment</th><th class="num">Deals</th><th class="num">Avg ARR</th><th class="num">Avg cycle</th></tr></thead>
+        <tbody>${segments.map(s => `<tr><td>${s.seg}</td><td class="num">${s.count}</td><td class="num">${fmtFull(s.deal)}</td><td class="num">${s.cycle.toFixed(0)} days</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Win rate by lead source</h3>
+      <p class="sub">250 leads · 81 closed-won · 32.4% overall</p>
+      ${hbarChart({ id: 'wrsrc', rows: channelRank.slice().sort((a, b) => b.wr - a.wr).map(c => ({ label: c.ch, value: c.wr, right: fmtP(c.wr), color: 'var(--s1)' })) })}
+      <div style="height:10px"></div>
+      <div class="callout info">
+        <div class="t">Field-tested signal</div>
+        <p>Events leads close at 46.7% — half again the house rate. Small volume today (15 leads), which is exactly why the media plan treats it as the scaling experiment.</p>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Sales leaderboard</h3>
+    <p class="sub">Win rate by rep — updated with every closed deal. Top spot changes hands; the bar for everyone rises.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th></th><th>Rep</th><th class="num">Leads</th><th class="num">Won</th><th class="num">Win rate</th><th style="width:30%">&nbsp;</th><th class="num">Avg deal</th></tr></thead>
+      <tbody>${reps.map((r, i) => `
+        <tr>
+          <td class="rank">${i + 1}</td>
+          <td><strong>${esc(r.name)}</strong>${i === 0 ? ' <span class="pill good">' + ICON.check + 'Top closer</span>' : ''}</td>
+          <td class="num">${r.leads}</td><td class="num">${r.won}</td>
+          <td class="num">${fmtP(r.wr)}</td>
+          <td><div class="progress" style="margin:0"><span class="${r.wr >= 0.3 ? 'g' : r.wr >= 0.2 ? 'w' : ''}" style="width:${(r.wr / 0.5 * 100).toFixed(0)}%;${r.wr < 0.2 ? 'background:var(--crit)' : ''}"></span></div></td>
+          <td class="num">${fmtFull(r.deal)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>
+    <p class="axis-note">Bars scaled to a 50% ceiling. Green ≥ 30% (house target) · amber 20–30% · red &lt; 20%. Michael Rodriguez and Robert Kim carry the largest average deals — pair them with Enterprise pipeline.</p>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>LTV economics</h3>
+      <p class="sub">The math behind the 34.7 : 1 story</p>
+      <div class="tbl-wrap"><table>
+        <tbody>
+          <tr><td>Avg annual deal value (won)</td><td class="num">${fmtFull(60825)}</td></tr>
+          <tr><td>Est. customer lifespan</td><td class="num">3 years</td></tr>
+          <tr><td>Gross margin</td><td class="num">80%</td></tr>
+          <tr><td><strong>Customer lifetime value</strong></td><td class="num"><strong>${fmtFull(LTV)}</strong></td></tr>
+          <tr><td><strong>LTV : CAC</strong></td><td class="num"><strong>34.7 : 1</strong></td></tr>
+        </tbody>
+      </table></div>
+      <p class="note" style="margin-top:8px">Assumptions from the source model: 3-year lifespan and 80% margin are industry-standard placeholders — swap in cohort data when available.</p>
+    </div>
+    <div class="card">
+      <h3>Cycle time by segment</h3>
+      <p class="sub">Days from first touch to close</p>
+      ${hbarChart({ id: 'cyc', rows: segments.map(s => ({ label: s.seg, value: s.cycle, right: s.cycle.toFixed(0) + ' days', color: 'var(--s2)' })) })}
+      <div style="height:10px"></div>
+      <div class="callout">
+        <div class="t">${pillWarn('Watch')}</div>
+        <p>Correlation of deal size to cycle length is 0.85. Forecast Enterprise revenue on a 90–170 day lag, not this quarter.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Forecast ---------- */
+function viewForecast() {
+  const confPill = c => c === 'High' ? pillOk('High confidence') : pillWarn('Medium');
+  return `
+  <div class="view-head">
+    <h2>Forecast</h2>
+    <p>Six months out: <strong>${fmtM(FORECAST6)}</strong> in forecast revenue from 129 projected deals. Q4 carries a 1.15× seasonal tailwind — the single best window this year to push pipeline hard.</p>
+  </div>
+  <div class="grid cols-3">
+    ${statTile('6-month forecast', fmtM(FORECAST6), 'Sep 2025 – Feb 2026 · 129 deals')}
+    ${statTile('Pipeline conversion', '25.5 deals', `Expected from 97 open leads · worth ${fmtM(PIPELINE_VALUE)}`)}
+    ${statTile('Monthly gap to target', fmtM(GAP), pillCrit('97% improvement needed'))}
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Revenue forecast by month</h3>
+    <p class="sub">Deal volume × predicted deal size, with model confidence</p>
+    ${barChart({ id: 'fc', aria: 'Six month revenue forecast', labels: forecast.map(f => f.m), fmt: fmtM,
+      values: forecast.map(f => f.rev),
+      colors: forecast.map(f => f.conf === 'High' ? 'var(--seq-550)' : 'var(--seq-350)'),
+      tipRows: i => { const f = forecast[i]; return `<div style="opacity:.75">${f.m}</div><b>${fmtFull(f.rev)}</b><div>${f.deals} deals × ${fmtM(f.size)} avg</div><div>Confidence: ${f.conf}</div>`; } })}
+    ${legend([{ label: 'High confidence', color: css('--seq-550') || '#1c5cab' }, { label: 'Medium confidence', color: css('--seq-350') || '#5598e7' }])}
+    <div class="tbl-wrap" style="margin-top:8px"><table>
+      <thead><tr><th>Month</th><th class="num">Deals</th><th class="num">Avg deal size</th><th class="num">Revenue</th><th>Confidence</th></tr></thead>
+      <tbody>${forecast.map(f => `<tr><td>${f.m}</td><td class="num">${f.deals}</td><td class="num">${fmtFull(f.size)}</td><td class="num">${fmtFull(f.rev)}</td><td>${confPill(f.conf)}</td></tr>`).join('')}
+      <tr><td><strong>Total</strong></td><td class="num"><strong>129</strong></td><td class="num">${fmtFull(63055)}</td><td class="num"><strong>${fmtFull(FORECAST6)}</strong></td><td></td></tr></tbody>
+    </table></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>What the current pipeline is worth</h3>
+      <p class="sub">Stage-weighted conversion of the 97 open leads</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Stage</th><th class="num">Open</th><th class="num">Conv. rate</th><th class="num">Expected wins</th></tr></thead>
+        <tbody>
+          <tr><td>MQL</td><td class="num">15</td><td class="num">5%</td><td class="num">0.8</td></tr>
+          <tr><td>SQL</td><td class="num">26</td><td class="num">20%</td><td class="num">5.2</td></tr>
+          <tr><td>Opportunity</td><td class="num">56</td><td class="num">35%</td><td class="num">19.6</td></tr>
+          <tr><td><strong>Total</strong></td><td class="num"><strong>97</strong></td><td></td><td class="num"><strong>25.5</strong></td></tr>
+        </tbody>
+      </table></div>
+      <div style="height:10px"></div>
+      <div class="callout good">
+        <div class="t">${pillOk('Projected pipeline revenue')}</div>
+        <p><strong>${fmtFull(PIPELINE_VALUE)}</strong> expected from deals already in motion — before a single new lead arrives.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Path to $1.5M / month</h3>
+      <p class="sub">The gap, framed as a to-do list rather than a wish</p>
+      <div class="stat"><div class="label">Expected monthly revenue today</div><div class="num" style="font-size:23px">${fmtM(EXPECTED_MONTHLY)}</div></div>
+      <div class="progress"><span class="w" style="width:${(EXPECTED_MONTHLY / TARGET_MONTHLY * 100).toFixed(0)}%"></span></div>
+      <div style="height:14px"></div>
+      <div class="callout">
+        <div class="t">${pillCrit('The gap: ' + fmtM(GAP) + ' / month')}</div>
+        <p>Closing it needs a 97% lift — the model points at <strong>lead volume + conversion optimization</strong>. Every month at current run-rate is ${fmtM(GAP)} not banked.</p>
+      </div>
+      <div style="height:10px"></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Quarter</th><th class="num">Seasonal index</th><th class="num">2026 Q1 fcst deals</th></tr></thead>
+        <tbody>
+          <tr><td>Q1 (Jan–Mar)</td><td class="num">0.95×</td><td class="num">47.0</td></tr>
+          <tr><td>Q2 (Apr–Jun)</td><td class="num">1.00×</td><td class="num">55.0</td></tr>
+          <tr><td>Q3 (Jul–Sep)</td><td class="num">0.98×</td><td class="num">51.7</td></tr>
+          <tr><td><strong>Q4 (Oct–Dec)</strong></td><td class="num"><strong>1.15×</strong></td><td class="num"><strong>78.4</strong></td></tr>
+        </tbody>
+      </table></div>
+      <p class="note" style="margin-top:8px">Q4 shows a 15% uplift from year-end budget flushes; Q3 dips slightly with summer vacations.</p>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>3-month predictions</h3>
+    <p class="sub">Where the model expects each metric to land</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Metric</th><th class="num">Current</th><th class="num">3-month prediction</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td>Monthly website visits</td><td class="num">17,185</td><td class="num">18,560</td><td><span class="up">↑ +8%</span></td></tr>
+        <tr><td>MQL → SQL rate</td><td class="num">27.8%</td><td class="num">28.6%</td><td><span class="up">↑</span></td></tr>
+        <tr><td>Win rate</td><td class="num">32.4%</td><td class="num">34.0%</td><td><span class="up">↑</span></td></tr>
+        <tr><td>Average deal size</td><td class="num">$60,825</td><td class="num">$63,258</td><td><span class="up">↑ +4%</span></td></tr>
+        <tr><td>CAC</td><td class="num">$4,204</td><td class="num">$4,119</td><td><span class="up">↓ improving</span></td></tr>
+        <tr><td>LTV : CAC</td><td class="num">34.7 : 1</td><td class="num">36.9 : 1</td><td><span class="up">↑</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+/* ---------- Compare ---------- */
+function viewCompare() {
+  return `
+  <div class="view-head">
+    <h2>Compare</h2>
+    <p>Month-over-month growth, industry benchmarks, and channel ranking. Acme beats the industry benchmark on all seven tracked metrics — that's the anchor to open every QBR with.</p>
+  </div>
+  <div class="card">
+    <h3>Monthly revenue</h3>
+    <p class="sub">Jan 2024 – Aug 2025 · average MoM growth +7.8%</p>
+    ${barChart({ id: 'mom', aria: 'Monthly revenue', labels: monthlyRevenue.map(r => r[0]), fmt: fmtM,
+      values: monthlyRevenue.map(r => r[1]), color: 'var(--s1)',
+      tipRows: i => { const r = monthlyRevenue[i]; const prev = i ? monthlyRevenue[i - 1][1] : null;
+        const d = prev ? (r[1] - prev) / prev : 0;
+        return `<div style="opacity:.75">${r[0]}</div><b>${fmtFull(r[1])}</b>` + (prev ? `<div>${d >= 0 ? '↑' : '↓'} ${fmtP(Math.abs(d))} vs prior month</div>` : ''); } })}
+    <p class="axis-note">Dips in Jul 2024, Jan 2025 and Jul 2025 track the seasonality index — not a demand problem.</p>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Benchmarks vs actual</h3>
+      <p class="sub">Seven for seven above industry standard</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Metric</th><th class="num">Acme</th><th class="num">Industry</th><th>Verdict</th></tr></thead>
+        <tbody>${benchmarks.map(b => `<tr><td>${esc(b.m)}</td><td class="num"><strong>${b.ours}</strong></td><td class="num">${b.bench}</td><td>${pillOk('Above')}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Channel ranking</h3>
+      <p class="sub">Ranked by win rate · revenue shown for scale</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th></th><th>Channel</th><th class="num">Win rate</th><th class="num">Avg deal</th><th class="num">Revenue</th></tr></thead>
+        <tbody>${channelRank.map(c => `<tr><td class="rank">${c.rank}</td><td><strong>${esc(c.ch)}</strong></td><td class="num">${fmtP(c.wr)}</td><td class="num">${fmtFull(c.deal)}</td><td class="num">${fmtFull(c.rev)}</td></tr>`).join('')}</tbody>
+      </table></div>
+      <p class="note" style="margin-top:8px">Organic is the volume engine (${fmtM(1383025)} revenue); Events is the efficiency engine (46.7% win rate). Referral prints the biggest checks at ${fmtM(95642)} average.</p>
+    </div>
+  </div>`;
+}
+
+/* ---------- Media Plan ---------- */
+let scenarioKey = 'Base case';
+function viewMedia() {
+  const S = SERIES();
+  return `
+  <div class="view-head">
+    <h2>Media plan</h2>
+    <p>$25,000/month across five platforms, engineered to land 10+ leads a day at a blended CPL of $69.20 — under the $82.24 ceiling the deal math allows.</p>
+  </div>
+  <div class="grid cols-4">
+    ${statTile('Monthly budget', '$25,000', 'across 5 platforms')}
+    ${statTile('Leads / day', '11.9', pillOk('Target: 10 / day'))}
+    ${statTile('Blended CPL', '$69.20', 'Max allowed: $82.24')}
+    ${statTile('MER', '5.16×', pillOk('Revenue ÷ spend, target > 5×'))}
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Budget allocation</h3>
+      <p class="sub">Weighted to CPL-efficiency, capped where unproven</p>
+      ${donutChart({ id: 'alloc', aria: 'Budget allocation by platform', fmt: fmtM,
+        items: mediaPlan.map((m, i) => ({ label: m.p, value: m.budget, color: S[i] })) })}
+      ${legend(mediaPlan.map((m, i) => ({ label: `${m.p} · ${fmtP(m.pct, 0)}`, color: S[i] })))}
+    </div>
+    <div class="card">
+      <h3>Cost per lead by platform</h3>
+      <p class="sub">Snapchat is the bargain; Google buys intent, not volume</p>
+      ${hbarChart({ id: 'cpl', rows: mediaPlan.slice().sort((a, b) => a.cpl - b.cpl).map(m => ({ label: m.p, value: m.cpl, right: '$' + m.cpl.toFixed(2), color: 'var(--s1)' })) })}
+      <div style="height:10px"></div>
+      <div class="callout info">
+        <div class="t">Why keep expensive Google?</div>
+        <p>Highest CPL but highest intent — its leads arrive pre-qualified from search. CPL alone never decides the mix; cost per <em>MQL</em> does (see Reports).</p>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Platform detail</h3>
+    <p class="sub">Structure and expected output per platform</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Platform</th><th class="num">% Budget</th><th class="num">Monthly</th><th class="num">Daily</th><th class="num">Est. leads/mo</th><th class="num">CPL</th><th>Campaign structure</th></tr></thead>
+      <tbody>${mediaPlan.map(m => `<tr><td><strong>${esc(m.p)}</strong></td><td class="num">${fmtP(m.pct, 0)}</td><td class="num">${fmtFull(m.budget)}</td><td class="num">$${m.daily.toFixed(0)}</td><td class="num">${m.leads.toFixed(1)}</td><td class="num">$${m.cpl.toFixed(2)}</td><td style="white-space:normal;min-width:220px">${esc(m.note)}</td></tr>`).join('')}</tbody>
+    </table></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Delivery scenarios</h3>
+    <p class="sub">The plan holds even at the conservative floor</p>
+    <div class="toolbar"><div class="seg" id="scen" role="tablist">${Object.keys(scenarios).map(k =>
+      `<button role="tab" aria-selected="${k === scenarioKey}" class="${k === scenarioKey ? 'on' : ''}" data-k="${esc(k)}">${esc(k)}</button>`).join('')}</div></div>
+    <div id="scen-body">${scenarioBody()}</div>
+  </div>`;
+}
+function scenarioBody() {
+  const s = scenarios[scenarioKey];
+  const monthlyBookings = 128982 * s.f;
+  return `<div class="grid cols-4">
+    ${statTile('Delivery factor', (s.f * 100).toFixed(0) + '%', scenarioKey === 'Conservative' ? '80% floor' : scenarioKey === 'Optimistic' ? '120% stretch' : 'Plan of record')}
+    ${statTile('Leads / month', s.leads.toFixed(0), s.day.toFixed(1) + ' per day')}
+    ${statTile('Est. new bookings / mo', fmtM(monthlyBookings), 'from ~' + (2.1 * s.f).toFixed(1) + ' closed-won deals')}
+    ${statTile('Vs 10/day target', '', s.status === 'On target' ? pillOk(s.status) : pillWarn(s.status))}
+  </div>`;
+}
+function bindMedia() {
+  const seg = $('#scen'); if (!seg) return;
+  seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    scenarioKey = b.dataset.k;
+    seg.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+    $('#scen-body').innerHTML = scenarioBody();
+  }));
+}
+
+/* ---------- Reports ---------- */
+function viewReports() {
+  return `
+  <div class="view-head">
+    <h2>Monthly performance report</h2>
+    <p>Reporting month: August 2026 · paid lead generation across Meta, Google, LinkedIn, TikTok, and Snapchat. Eleven of eleven plan metrics on track.</p>
+  </div>
+  <div class="callout good" style="margin-bottom:14px">
+    <div class="t">${pillOk('Executive summary')}</div>
+    <p>$25,000 in spend produced <strong>362 leads</strong> (11.9/day against a 10/day target) at a blended CPL of <strong>$69.06</strong> — inside plan. Qualified rate landed at 25.1% vs the 25% target. Most efficient platform: <strong>Snapchat at $36.23 CPL</strong>; best qualified rate: <strong>LinkedIn at 25.8%</strong>.</p>
+  </div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Actual vs plan</h3>
+      <p class="sub">Key metrics dashboard — plan targets from the media plan</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Metric</th><th class="num">Actual</th><th class="num">Plan</th><th>Status</th></tr></thead>
+        <tbody>${reportRows.map(r => `<tr><td>${esc(r.m)}</td><td class="num"><strong>${r.a}</strong></td><td class="num">${r.plan}</td><td>${pillOk('On track')}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Cost per MQL by platform</h3>
+      <p class="sub">The number that actually decides next month's budget</p>
+      ${hbarChart({ id: 'cpmql', rows: platformReport.slice().sort((a, b) => a.cpm - b.cpm).map(p => ({ label: p.p, value: p.cpm, right: '$' + p.cpm.toFixed(0), color: 'var(--s1)' })) })}
+      <div style="height:10px"></div>
+      <div class="callout">
+        <div class="t">${pillWarn('Watch-out')}</div>
+        <p>Google Ads costs <strong>$521 per MQL</strong> — 3.5× Snapchat. Track its MQL → SQL rate before cutting: intent-heavy leads often win downstream.</p>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card">
+    <h3>Platform performance</h3>
+    <p class="sub">Full funnel by platform, August 2026</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Platform</th><th class="num">Spend</th><th class="num">Leads</th><th class="num">CPL</th><th class="num">MQLs</th><th class="num">Qualified rate</th><th class="num">Cost / MQL</th></tr></thead>
+      <tbody>${platformReport.map(p => `<tr><td><strong>${esc(p.p)}</strong></td><td class="num">${fmtFull(p.spend)}</td><td class="num">${p.leads}</td><td class="num">$${p.cpl.toFixed(2)}</td><td class="num">${p.mqls}</td><td class="num">${fmtP(p.qr)}</td><td class="num">$${p.cpm.toFixed(2)}</td></tr>`).join('')}
+      <tr><td><strong>Total / blended</strong></td><td class="num"><strong>$25,000</strong></td><td class="num"><strong>362</strong></td><td class="num"><strong>$69.06</strong></td><td class="num"><strong>91</strong></td><td class="num"><strong>25.1%</strong></td><td class="num"><strong>$274.73</strong></td></tr></tbody>
+    </table></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Wins &amp; watch-outs</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <div class="callout good"><div class="t">${pillOk('Win')}</div><p>Best CPL: Snapchat at $36.23 — consider lifting its 10% budget cap.</p></div>
+        <div class="callout good"><div class="t">${pillOk('Win')}</div><p>Best qualified rate: LinkedIn at 25.8% — the qualifying questions are working.</p></div>
+        <div class="callout"><div class="t">${pillWarn('Watch')}</div><p>Highest cost per MQL: Google Ads at $520.83 — audit search terms and PMax placements.</p></div>
+        <div class="callout"><div class="t">${pillWarn('Watch')}</div><p>TikTok CPL is furthest above plan (+0.4%) — refresh creative before scaling.</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Recommendations — next month</h3>
+      <p class="sub">Ranked by impact ÷ effort, all three are "do now"</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Recommendation</th><th>Impact</th><th>Effort</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td style="white-space:normal">Shift 10–15% of budget from highest-CPL platform to the two most efficient</td><td>${pillOk('High')}</td><td>Low</td><td>${pillCrit('Immediate')}</td></tr>
+          <tr><td style="white-space:normal">Refresh creative on any platform with rising CPM and falling CTR</td><td>${pillOk('High')}</td><td>Medium</td><td>${pillCrit('Immediate')}</td></tr>
+          <tr><td style="white-space:normal">Copy LinkedIn's lead-form qualifying questions to every platform</td><td>${pillOk('High')}</td><td>Low</td><td>${pillCrit('Immediate')}</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note" style="margin-top:10px">How to use: overwrite the actuals each month, compare to plan, and let the wins/watch-outs write your next-month priorities.</p>
+    </div>
+  </div>`;
+}
+
+/* ============================== router ============================== */
+const VIEWS = {
+  dashboard: { render: viewDashboard },
+  pipeline: { render: viewPipeline, bind: bindPipeline },
+  marketing: { render: viewMarketing },
+  analytics: { render: viewAnalytics },
+  forecast: { render: viewForecast },
+  compare: { render: viewCompare },
+  media: { render: viewMedia, bind: bindMedia },
+  reports: { render: viewReports },
+};
+let current = 'dashboard';
+function go(id) {
+  current = id;
+  const m = MODULES.find(x => x.id === id);
+  $('#page-title').textContent = m.name;
+  $('#page-crumb').textContent = m.crumb;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+  const c = $('#content');
+  c.innerHTML = `<section class="view on">${VIEWS[id].render()}</section>`;
+  if (VIEWS[id].bind) VIEWS[id].bind();
+  closeDrawer(); hideTip();
+  window.scrollTo({ top: 0 });
+  location.hash = id;
+}
+$('#nav').innerHTML = MODULES.map(m =>
+  `<button class="nav-btn" data-id="${m.id}">${NAV_ICONS[m.icon]}<span>${m.name}</span></button>`).join('');
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => go(b.dataset.id)));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => go(current));
+new MutationObserver(muts => { if (muts.some(m => m.attributeName === 'data-theme')) go(current); })
+  .observe(document.documentElement, { attributes: true });
+go(MODULES.some(m => m.id === location.hash.slice(1)) ? location.hash.slice(1) : 'dashboard');
+</script>
